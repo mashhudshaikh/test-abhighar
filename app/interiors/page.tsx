@@ -1,0 +1,563 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useState, useMemo, useRef } from "react";
+import Header from "@/components/header";
+import Footer from "@/components/footer";
+import WhatsAppFloat from "@/components/whatsapp-float";
+import MagneticButton from "@/components/ui/magnetic-button";
+import Reveal from "@/components/ui/reveal";
+import { interiorCategories, Property } from "@/lib/data";
+import ProjectFeedbackForm from "@/components/project-feedback-form";
+import LeadGate from "@/components/lead-gate";
+import AdvisorCard from "@/components/advisor-card";
+
+const INTERIORS_ADVISOR_DATA = {
+  advisor: {
+    initials: "MJ",
+    name: "Meera Joshi",
+    role: "Senior Interior Designer",
+    rating: 4.9,
+  },
+} as unknown as Property;
+
+type Pkg = {
+  slug: "essentials" | "premium" | "luxury";
+  name: string;
+  tagline: string;
+  price: string;
+  popular?: boolean;
+  image: string;
+  features: string[];
+};
+
+const PACKAGES: Pkg[] = [
+  {
+    slug: "essentials",
+    name: "Essentials",
+    tagline: "Perfect for compact homes",
+    price: "₹1,99,000",
+    image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=900&q=80",
+    features: ["Modular Kitchen", "Wardrobes in 1 Bedroom", "Basic False Ceiling", "2D Design & Consultation"],
+  },
+  {
+    slug: "premium",
+    name: "Premium",
+    tagline: "Perfect blend of style & comfort",
+    price: "₹3,49,000",
+    popular: true,
+    image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=900&q=80",
+    features: ["Modular Kitchen", "Wardrobes in 2 Bedrooms", "False Ceiling with Lights", "3D Design & Consultation", "Premium Materials"],
+  },
+  {
+    slug: "luxury",
+    name: "Luxury",
+    tagline: "For a luxurious living experience",
+    price: "₹5,99,000",
+    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=900&q=80",
+    features: ["Modular Kitchen (Premium)", "Wardrobes in All Bedrooms", "Designer False Ceiling", "3D Design & Consultation", "Premium Materials & Decor"],
+  },
+];
+
+const PORTFOLIO = [
+  { id: 1, category: "living-room", title: "Modern Living Room",  location: "3 BHK Apartment · Pune",      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=900&q=80" },
+  { id: 2, category: "kitchen",     title: "Modular Kitchen",     location: "2 BHK Apartment · Mumbai",    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=900&q=80" },
+  { id: 3, category: "bedroom",     title: "Master Bedroom",      location: "4 BHK Apartment · Bangalore", image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=900&q=80" },
+  { id: 4, category: "full-home",   title: "Full Home Interior",  location: "3 BHK Apartment · Hyderabad", image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=900&q=80" },
+  { id: 5, category: "living-room", title: "Compact Living Room", location: "2 BHK Apartment · Pune",      image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=80" },
+  { id: 6, category: "kitchen",     title: "Open Kitchen",        location: "3 BHK Apartment · Delhi",     image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=900&q=80" },
+  { id: 7, category: "bedroom",     title: "Kids Bedroom",        location: "3 BHK Apartment · Pune",      image: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=900&q=80" },
+  { id: 8, category: "full-home",   title: "Penthouse Interior",  location: "4 BHK Penthouse · Mumbai",    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80" },
+];
+
+const FILTERS = [
+  { slug: "all",         label: "All" },
+  { slug: "living-room", label: "Living Room" },
+  { slug: "kitchen",     label: "Kitchen" },
+  { slug: "bedroom",     label: "Bedroom" },
+  { slug: "full-home",   label: "Full Home" },
+];
+
+const PROCESS = [
+  { step: "01", title: "Free consultation", desc: "Tell us about your space, style, and budget. No commitment, no fee." },
+  { step: "02", title: "3D design preview", desc: "Our designers create a 3D walkthrough you can review and refine before a hammer swings." },
+  { step: "03", title: "Production & build", desc: "Modular pieces manufactured at our factory, sent to your site with site supervisors." },
+  { step: "04", title: "Handover",           desc: "Move-in-ready home with 10-year warranty and a single point of contact for any concern." },
+];
+
+const FAQS = [
+  { q: "How long does the interior design process take?", a: "Most full home interiors are delivered in 45 days from final design approval. Modular kitchens take 30 days, single-room makeovers 20-35 days." },
+  { q: "Is there a charge for the initial consultation?",  a: "No. The first consultation, site visit, and design proposal are all complimentary. You only pay if you choose to move forward with the project." },
+  { q: "Do you handle the civil/electrical work too?",     a: "Yes. We coordinate every trade — electrical, plumbing, false ceiling, painting, woodwork — so you only deal with one project manager." },
+  { q: "What is included in the 10-year warranty?",         a: "Modular furniture (woodwork, shutters, internal fittings, hardware) carries a 10-year warranty. Wall finishes and accessories carry a 1-year warranty." },
+  { q: "Can I see samples and materials before committing?", a: "Yes. After the design preview, you visit our experience centre to feel, touch, and approve every material before production begins." },
+];
+
+export default function InteriorsPage() {
+  const formRef = useRef<HTMLDivElement>(null);
+  const [selectedPackage, setSelectedPackage] = useState<Pkg["slug"]>("premium");
+  const scrollToForm = () => formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  return (
+    <>
+      <Header />
+      <main className="pt-[100px] lg:pt-[110px]">
+        <Hero scrollToForm={scrollToForm} />
+
+        {/* Two-column rail with sticky advisor */}
+        <div className="container-x">
+          <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-8">
+            <div className="min-w-0">
+              <Services />
+              <Packages selectedPackage={selectedPackage} setSelectedPackage={setSelectedPackage} scrollToForm={scrollToForm} />
+              <Portfolio scrollToForm={scrollToForm} />
+              <Process />
+              <FAQ />
+            </div>
+
+            <aside className="hidden lg:block pt-12">
+              <div className="sticky top-28">
+                <AdvisorCard property={INTERIORS_ADVISOR_DATA} variant="interior" />
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        {/* Mobile-only advisor card */}
+        <div className="lg:hidden container-x py-8">
+          <AdvisorCard property={INTERIORS_ADVISOR_DATA} variant="interior" />
+        </div>
+
+        <FinalCTAWithForm formRef={formRef} />
+      </main>
+      <Footer />
+      <WhatsAppFloat />
+    </>
+  );
+}
+
+/* — Hero — */
+function Hero({ scrollToForm }: { scrollToForm: () => void }) {
+  return (
+    <section className="container-x pt-6 pb-12 lg:pb-16">
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        <Reveal>
+          <h1 className="font-display font-semibold text-navy leading-[1.05] tracking-tight mb-3" style={{ fontSize: "clamp(36px, 5vw, 56px)", letterSpacing: "-0.02em" }}>
+            Design your dream home
+            <br />
+            <em className="text-gold italic font-medium">inside out.</em>
+          </h1>
+          <p className="body-base text-slate max-w-[480px] mb-8">
+            End-to-end interior design solutions tailored to your style, space, and budget &mdash; built by senior designers, delivered in 45 days.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 max-w-[520px]">
+            {[
+              { icon: "pencil", label: "Personalised", sub: "Designs" },
+              { icon: "clock",  label: "Timely",       sub: "Delivery" },
+              { icon: "rupee",  label: "Transparent",  sub: "Pricing" },
+              { icon: "shield", label: "10 Years",     sub: "Warranty" },
+            ].map((b) => (
+              <div key={b.label} className="text-center">
+                <div className="w-11 h-11 mx-auto mb-2 rounded-full bg-ivory border border-navy/8 grid place-items-center text-gold-hover">
+                  <Icon kind={b.icon} className="w-5 h-5" />
+                </div>
+                <div className="text-[12.5px] font-sans font-semibold text-navy">{b.label}</div>
+                <div className="meta text-slate">{b.sub}</div>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={scrollToForm} className="btn-primary inline-flex items-center gap-2">
+              Book Free Consultation <span aria-hidden>&rarr;</span>
+            </button>
+            <Link href="#portfolio" className="inline-flex items-center gap-2 h-12 px-6 rounded-btn border border-navy/15 text-navy font-sans font-semibold text-sm hover:border-gold hover:text-gold-hover transition-colors">
+              View Our Work <span aria-hidden>&rarr;</span>
+            </Link>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.15}>
+          <div className="relative rounded-card overflow-hidden aspect-[5/4] bg-ivory">
+            <Image src="/interiors/hero.jpg" alt="Designed interior" fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+            <div className="absolute bottom-5 left-5 right-5 sm:right-auto card-base px-4 py-3 flex items-center gap-3">
+              <div className="flex -space-x-2">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="w-8 h-8 rounded-full bg-gold border-2 border-white grid place-items-center text-white text-[11px] font-bold">
+                    {String.fromCharCode(64 + n)}
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div className="font-sans font-bold text-[16px] text-navy leading-none">3000+</div>
+                <div className="meta text-slate">Homes Designed</div>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* — Services strip — */
+function Services() {
+  const all = [
+    { slug: "modular-kitchen", name: "Modular Kitchen", icon: "kitchen" },
+    { slug: "living-room",     name: "Living Room",     icon: "sofa" },
+    ...interiorCategories.map((c) => ({ slug: c.slug, name: c.name, icon: c.icon })),
+    { slug: "full-home", name: "Full Home Interiors", icon: "home" },
+  ];
+
+  return (
+    <section className="rounded-card bg-ivory/60 py-10 lg:py-14 px-5 lg:px-8 mb-10 lg:mb-14">
+      <Reveal>
+        <h2 className="h2-section text-navy text-center mb-2">Our Interior Services</h2>
+        <div className="w-10 h-0.5 bg-gold mx-auto mb-10" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {all.slice(0, 8).map((s) => (
+            <Link key={s.slug} href={"#" + s.slug} id={s.slug} className="card-base bg-white px-3 py-6 flex flex-col items-center gap-3 hover:border-gold hover:-translate-y-1 hover:shadow-lg transition-all border border-transparent group">
+              <div className="w-12 h-12 rounded-panel bg-ivory text-gold-hover group-hover:bg-gold group-hover:text-white grid place-items-center transition-colors">
+                <Icon kind={s.icon} className="w-6 h-6" />
+              </div>
+              <div className="text-[13px] font-sans font-semibold text-navy text-center leading-tight">{s.name}</div>
+            </Link>
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+/* — Packages + cost calculator — */
+function Packages({
+  selectedPackage,
+  setSelectedPackage,
+  scrollToForm,
+}: {
+  selectedPackage: Pkg["slug"];
+  setSelectedPackage: (slug: Pkg["slug"]) => void;
+  scrollToForm: () => void;
+}) {
+  const [propertyType, setPropertyType] = useState("2 BHK");
+  const [carpetArea, setCarpetArea] = useState("800 - 1000");
+  const [style, setStyle] = useState("Modern");
+
+  const estimate = useMemo(() => {
+    const base: Record<string, number> = { "1 BHK": 250000, "2 BHK": 350000, "3 BHK": 500000, "4 BHK": 700000 };
+    const areaMult: Record<string, number> = { "400 - 600": 0.85, "600 - 800": 0.95, "800 - 1000": 1, "1000 - 1500": 1.2, "1500+": 1.5 };
+    const styleMult: Record<string, number> = { Modern: 1, Contemporary: 1.1, Luxury: 1.4 };
+    const low = (base[propertyType] || 350000) * (areaMult[carpetArea] || 1) * (styleMult[style] || 1);
+    const high = low * 1.2;
+    return { low: Math.round(low / 1000) * 1000, high: Math.round(high / 1000) * 1000 };
+  }, [propertyType, carpetArea, style]);
+
+  const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
+
+  return (
+    <section id="packages" className="py-10 lg:py-14">
+      <Reveal>
+        <h2 className="h2-section text-navy text-center mb-2">Interior Design Packages</h2>
+        <div className="w-10 h-0.5 bg-gold mx-auto mb-3" />
+        <p className="meta text-slate text-center mb-10">Tap a package to compare. The most popular pick is highlighted.</p>
+      </Reveal>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5 mb-8">
+        {PACKAGES.map((pkg, i) => {
+          const isSelected = selectedPackage === pkg.slug;
+
+          const cardCls = [
+            "relative h-full overflow-hidden flex flex-col scroll-mt-[120px]",
+            "card-base cursor-pointer text-left",
+            "transition-all duration-300",
+            "hover:-translate-y-1.5 hover:shadow-hover",
+            isSelected ? "ring-2 ring-gold shadow-hover" : "ring-1 ring-transparent hover:ring-gold/30",
+          ].join(" ");
+
+          return (
+            <Reveal key={pkg.slug} delay={i * 0.08} className="h-full">
+              <button
+                type="button"
+                id={pkg.slug}
+                onClick={() => setSelectedPackage(pkg.slug)}
+                aria-pressed={isSelected}
+                className={cardCls}
+              >
+                {pkg.popular && (
+                  <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-pill bg-success text-white text-[10px] font-bold uppercase tracking-wider">Most Popular</span>
+                )}
+                {isSelected && (
+                  <span className="absolute top-3 left-3 z-10 w-7 h-7 rounded-full bg-gold text-white grid place-items-center shadow-cta">
+                    <Icon kind="check" className="w-4 h-4" />
+                  </span>
+                )}
+
+                <div className="relative aspect-[16/10] bg-ivory overflow-hidden">
+                  <Image src={pkg.image} alt={pkg.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition-transform duration-[700ms] group-hover:scale-105" />
+                </div>
+
+                <div className="p-5 flex-1 flex flex-col">
+                  <div className="font-sans font-semibold text-[20px] text-navy mb-1">{pkg.name}</div>
+                  <div className="meta text-slate mb-4">{pkg.tagline}</div>
+                  <div className="flex items-baseline gap-2 mb-4">
+                    <span className="font-sans font-bold text-[22px] text-navy tnum">{pkg.price}</span>
+                    <span className="meta text-slate">Onwards</span>
+                  </div>
+                  <ul className="space-y-2 mb-5 flex-1">
+                    {pkg.features.map((f) => (
+                      <li key={f} className="meta text-slate flex items-start gap-2">
+                        <Icon kind="check" className="w-3.5 h-3.5 text-success mt-0.5 shrink-0" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div
+                    role="button"
+                    tabIndex={-1}
+                    onClick={(e) => { e.stopPropagation(); scrollToForm(); }}
+                    className={
+                      "h-11 rounded-btn font-sans font-semibold text-sm grid place-items-center transition-colors " +
+                      (isSelected ? "bg-gold text-white hover:bg-gold-hover" : "border border-navy/15 text-navy hover:border-gold hover:text-gold-hover hover:bg-gold/5")
+                    }
+                  >
+                    {isSelected ? "Get this package →" : "Select & View"}
+                  </div>
+                </div>
+              </button>
+            </Reveal>
+          );
+        })}
+      </div>
+
+      <Reveal delay={0.16}>
+        <LeadGate storageKey="lead:interiors" prompt="Cost estimate after a quick intro" onUnlockClick={scrollToForm}>
+          <aside className="card-base p-5 lg:p-6">
+            <h3 className="font-sans font-semibold text-[18px] text-navy text-center mb-5">
+              Cost Calculator <span className="text-slate font-medium">&middot; {PACKAGES.find((p) => p.slug === selectedPackage)?.name}</span>
+            </h3>
+
+            <div className="grid sm:grid-cols-3 gap-4 mb-5">
+              <Field label="Property Type">
+                <select value={propertyType} onChange={(e) => setPropertyType(e.target.value)} className="calc-input">
+                  {["1 BHK", "2 BHK", "3 BHK", "4 BHK"].map((o) => <option key={o}>{o}</option>)}
+                </select>
+              </Field>
+              <Field label="Carpet Area (sq.ft.)">
+                <select value={carpetArea} onChange={(e) => setCarpetArea(e.target.value)} className="calc-input">
+                  {["400 - 600", "600 - 800", "800 - 1000", "1000 - 1500", "1500+"].map((o) => <option key={o}>{o}</option>)}
+                </select>
+              </Field>
+              <Field label="Style">
+                <select value={style} onChange={(e) => setStyle(e.target.value)} className="calc-input">
+                  {["Modern", "Contemporary", "Luxury"].map((o) => <option key={o}>{o}</option>)}
+                </select>
+              </Field>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-panel bg-ivory p-4">
+              <div>
+                <div className="meta text-slate mb-0.5">Estimated Cost</div>
+                <div className="font-sans font-bold text-[20px] text-success tnum">
+                  {fmt(estimate.low)} <span className="text-slate font-medium">&ndash;</span> {fmt(estimate.high)}
+                </div>
+                <div className="meta text-slate mt-0.5">*Approximate &mdash; final quote on consultation</div>
+              </div>
+
+              <button type="button" onClick={scrollToForm} className="h-11 px-5 rounded-btn bg-gold text-white font-sans font-semibold text-sm hover:bg-gold-hover transition-colors whitespace-nowrap shadow-cta">
+                Get Free Quote
+              </button>
+            </div>
+
+            <style jsx>{`
+              .calc-input {
+                width: 100%;
+                background: white;
+                border: 1px solid hsl(var(--navy) / 0.12);
+                border-radius: 8px;
+                padding: 10px 14px;
+                font-family: var(--font-inter), system-ui, sans-serif;
+                font-size: 14px;
+                font-weight: 500;
+                color: hsl(var(--navy));
+                outline: none;
+                cursor: pointer;
+                transition: border-color .25s;
+              }
+              .calc-input:focus { border-color: hsl(var(--gold)); }
+            `}</style>
+          </aside>
+        </LeadGate>
+      </Reveal>
+    </section>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="text-[12.5px] font-sans font-semibold text-navy mb-1.5 block">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+/* — Portfolio — */
+function Portfolio({ scrollToForm }: { scrollToForm: () => void }) {
+  const [filter, setFilter] = useState("all");
+  const visible = filter === "all" ? PORTFOLIO : PORTFOLIO.filter((p) => p.category === filter);
+
+  return (
+    <section id="portfolio" className="rounded-card bg-ivory/60 py-10 lg:py-14 px-5 lg:px-8 mb-10 lg:mb-14">
+      <Reveal>
+        <h2 className="h2-section text-navy text-center mb-2">See Our Work</h2>
+        <div className="w-10 h-0.5 bg-gold mx-auto mb-8" />
+      </Reveal>
+
+      <div className="flex items-center justify-center gap-2 flex-wrap mb-8">
+        {FILTERS.map((f) => {
+          const active = filter === f.slug;
+          const cls = "px-4 py-2 rounded-pill text-[13px] font-sans font-semibold transition-all " + (active ? "bg-success text-white shadow-cta scale-105" : "bg-white border border-navy/10 text-slate hover:text-navy hover:border-gold hover:-translate-y-0.5");
+          return (
+            <button key={f.slug} type="button" onClick={() => setFilter(f.slug)} className={cls}>{f.label}</button>
+          );
+        })}
+      </div>
+
+      <LeadGate storageKey="lead:interiors" prompt="Full portfolio after a quick intro" onUnlockClick={scrollToForm}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {visible.map((p) => (
+            <Reveal key={p.id} className="h-full">
+              <article className="card-base bg-white overflow-hidden group h-full transition-all duration-300 hover:-translate-y-1.5 hover:shadow-hover">
+                <div className="relative aspect-[4/3] bg-ivory overflow-hidden">
+                  <Image src={p.image} alt={p.title} fill sizes="(max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-[800ms] group-hover:scale-[1.08]" />
+                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-pill bg-white/95 backdrop-blur-sm text-[11px] font-sans font-semibold text-navy capitalize">
+                    {p.category.replace("-", " ")}
+                  </span>
+                </div>
+                <div className="p-4">
+                  <div className="font-sans font-semibold text-[15px] text-navy mb-0.5 transition-colors group-hover:text-gold-hover">{p.title}</div>
+                  <div className="meta text-slate">{p.location}</div>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+      </LeadGate>
+    </section>
+  );
+}
+
+/* — Process — */
+function Process() {
+  return (
+    <section className="py-10 lg:py-14">
+      <Reveal>
+        <h2 className="h2-section text-navy text-center mb-2">How it works</h2>
+        <div className="w-10 h-0.5 bg-gold mx-auto mb-10" />
+      </Reveal>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
+        {PROCESS.map((s, i) => (
+          <Reveal key={s.step} delay={i * 0.08} className="h-full">
+            <div className="card-base p-6 h-full flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-hover hover:border-gold/30 group">
+              <div className="font-display font-semibold text-[40px] text-gold leading-none mb-3 tnum transition-transform group-hover:scale-110 origin-left">{s.step}</div>
+              <div className="font-sans font-semibold text-[17px] text-navy mb-2">{s.title}</div>
+              <p className="meta text-slate flex-1">{s.desc}</p>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* — FAQ — */
+function FAQ() {
+  const [open, setOpen] = useState<number | null>(0);
+  return (
+    <section className="rounded-card bg-ivory/60 py-10 lg:py-14 px-5 lg:px-8">
+      <Reveal>
+        <h2 className="h2-section text-navy text-center mb-2">Common questions</h2>
+        <div className="w-10 h-0.5 bg-gold mx-auto mb-10" />
+      </Reveal>
+      <div className="space-y-3 max-w-[760px] mx-auto">
+        {FAQS.map((f, i) => {
+          const isOpen = open === i;
+          return (
+            <Reveal key={i}>
+              <details open={isOpen} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open ? i : null)} className="card-base bg-white px-5 py-4 group transition-all hover:border-gold/30">
+                <summary className="list-none cursor-pointer flex items-center justify-between gap-4">
+                  <span className="font-sans font-semibold text-[15.5px] text-navy">{f.q}</span>
+                  <span className={"w-7 h-7 rounded-full bg-ivory grid place-items-center text-navy transition-all duration-300 shrink-0 " + (isOpen ? "rotate-45 bg-gold text-white" : "group-hover:bg-gold/15")}>
+                    <Icon kind="plus" className="w-4 h-4" />
+                  </span>
+                </summary>
+                <p className="body-base text-slate mt-3">{f.a}</p>
+              </details>
+            </Reveal>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/* — Final CTA — */
+function FinalCTAWithForm({ formRef }: { formRef: React.RefObject<HTMLDivElement> }) {
+  return (
+    <section ref={formRef} id="consultation" className="py-12 lg:py-16">
+      <div className="container-x max-w-[860px]">
+        <Reveal>
+          <ProjectFeedbackForm
+            propertySlug="interiors"
+            propertyName="your interior design project"
+            onUnlock={() => { window.dispatchEvent(new Event("lead-unlock")); }}
+          />
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* — Icon set — */
+function Icon({ kind, className = "w-4 h-4" }: { kind: string; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      {PATHS[kind] ?? PATHS.default}
+    </svg>
+  );
+}
+
+const PATHS: Record<string, React.ReactNode> = {
+  kitchen: (
+    <>
+      <path d="M3 9h18M3 9v12h18V9M3 9V5h18v4" />
+      <path d="M7 14v3M11 14v3M15 14v3M19 14v3" />
+    </>
+  ),
+  sofa: (
+    <>
+      <path d="M3 14v-3a2 2 0 012-2h14a2 2 0 012 2v3" />
+      <path d="M2 14h20v5H2zM5 19v2M19 19v2" />
+    </>
+  ),
+  home: (
+    <>
+      <path d="M3 11l9-7 9 7v9a2 2 0 01-2 2h-4v-7H9v7H5a2 2 0 01-2-2z" />
+    </>
+  ),
+  bed: <><path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6" /><path d="M3 18h18M7 10V8a2 2 0 012-2h6a2 2 0 012 2v2" /></>,
+  wardrobe: <><rect x="5" y="3" width="14" height="18" rx="1" /><path d="M12 3v18M9 10v3M15 10v3" /></>,
+  ceiling: <><path d="M3 8h18M5 8v3M9 8v3M13 8v3M17 8v3M21 8v3" /><path d="M3 14h18M5 20h14" /></>,
+  bath: <><path d="M5 12V6a2 2 0 014 0v1" /><path d="M3 12h18l-1 7a2 2 0 01-2 2H6a2 2 0 01-2-2L3 12z" /></>,
+  door: <><rect x="6" y="3" width="12" height="18" rx="1" /><circle cx="14" cy="12" r="0.8" fill="currentColor" /></>,
+  desk: <><path d="M3 14h18M5 14v6M19 14v6" /><path d="M5 14V8h14v6M9 8V5h6v3" /></>,
+  pencil: <><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4z" /></>,
+  clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+  rupee: <><path d="M7 5h10M7 9h10" /><path d="M7 5c0 5-3 6-3 6h2c5 0 6 4 6 9" /></>,
+  shield: <><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z" /><path d="M9 12l2 2 4-4" /></>,
+  check: <><path d="M5 12l5 5L20 7" /></>,
+  plus: <><path d="M12 5v14M5 12h14" /></>,
+  calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></>,
+  default: <circle cx="12" cy="12" r="3" />,
+};

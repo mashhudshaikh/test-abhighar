@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Navy gold palette */
+    --navy:        215 67% 14%;
+    --navy-80:     214 54% 22%;
+    --gold:        36 54% 54%;
+    --gold-hover:  35 47% 48%;
+    --gold-light:  34 86% 96%;
+    --ivory:       36 36% 96%;
+    --slate:       215 18% 35%;
+    --steel:       211 34% 67%;
+    --brass:       40 36% 55%;
+    --success:     147 65% 29%;
+    --border-l:    214 32% 91%;
+
+    /* Locality chip palette */
+    --loc-hinjwadi:  210 47% 94%;   --loc-hinjwadi-fg:  210 47% 26%;
+    --loc-baner:     20 39% 94%;    --loc-baner-fg:     20 42% 30%;
+    --loc-koregaon:  263 39% 94%;   --loc-koregaon-fg:  263 35% 30%;
+    --loc-kharadi:   40 39% 94%;    --loc-kharadi-fg:   40 45% 28%;
+    --loc-wakad:     140 31% 93%;   --loc-wakad-fg:     140 35% 25%;
+    --loc-aundh:     332 39% 94%;   --loc-aundh-fg:     332 35% 30%;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body {
+    @apply bg-ivory text-navy font-sans antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Typography — strict hierarchy per design spec.
+     Fraunces serif ONLY on hero H1 + brand wordmark; Inter sans everywhere else. */
+  .h1-hero {
+    @apply font-display font-medium leading-[1.05] tracking-tight;
+    font-size: clamp(36px, 5vw, 56px);
+  }
+  .h2-section {
+    @apply font-sans font-medium leading-[1.15] tracking-tight;
+    font-size: clamp(26px, 3.4vw, 36px);
+  }
+  .h3-card {
+    @apply font-sans font-medium leading-tight tracking-tight;
+    font-size: clamp(17px, 1.6vw, 20px);
+  }
+  .eyebrow {
+    @apply font-sans font-semibold uppercase text-brass;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+  }
+  .body-base { @apply font-sans font-normal; font-size: clamp(14.5px, 1.1vw, 16px); line-height: 1.55; }
+  .meta      { @apply font-sans font-normal; font-size: 13px; }
+  .price     {
+    @apply font-sans font-medium;
+    font-size: clamp(18px, 1.8vw, 22px);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+  .tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-7 h-12 rounded-btn
+           bg-gold text-white font-sans font-semibold text-sm
+           shadow-cta transition-colors duration-300
+           hover:bg-gold-hover;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-5 h-10 rounded-pill
+           text-navy font-sans font-medium text-sm
+           transition-colors duration-300
+           hover:bg-navy/5 hover:text-gold-hover;
+  }
+  .container-x { @apply max-w-[1280px] mx-auto px-5 lg:px-8; }
+  .card-base   { @apply bg-white rounded-card shadow-card; }
+  .section     { @apply py-14 lg:py-20; }
+
+  .sec-eyebrow {
+    @apply inline-flex items-center gap-2 px-3.5 py-1.5 rounded-pill
+           bg-gold/10 text-gold-hover eyebrow;
+  }
+  .sec-eyebrow::before {
+    content: "";
+    @apply w-1.5 h-1.5 rounded-full bg-gold;
+  }
+}
+
+@layer utilities {
+  .grain {
+    background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.85, 0 0 0 0 0.78, 0 0 0 0 0.65, 0 0 0 0.10 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+}
+
+/* Cursor follower (hidden on touch) */
+.cursor-dot, .cursor-ring {
+  position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width .25s cubic-bezier(0.22,1,0.36,1),
+              height .25s cubic-bezier(0.22,1,0.36,1);
+}
+.cursor-dot  { width: 8px;  height: 8px;  border-radius: 50%; background: hsl(var(--gold)); mix-blend-mode: multiply; }
+.cursor-ring { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid hsl(var(--gold) / 0.45); }
+.cursor-dot.grow  { width: 14px; height: 14px; background: hsl(var(--navy)); }
+.cursor-ring.grow { width: 72px; height: 72px; border-color: hsl(var(--navy) / 0.35); }
+@media (hover: none), (pointer: coarse) { .cursor-dot, .cursor-ring { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
