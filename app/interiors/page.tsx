@@ -107,7 +107,6 @@ export default function InteriorsPage() {
           </div>
         </div>
 
-        {/* Mobile-only advisor card */}
         <div className="lg:hidden container-x py-8">
           <AdvisorCard property={INTERIORS_ADVISOR_DATA} variant="interior" />
         </div>
@@ -122,18 +121,18 @@ export default function InteriorsPage() {
 
 function Hero({ openModal }: { openModal: () => void }) {
   return (
-    <section className="container-x pt-6 pb-12 lg:pb-16">
-      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+    <section className="container-x pt-4 sm:pt-6 pb-8 sm:pb-12 lg:pb-16">
+      <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center">
         <Reveal>
-          <h1 className="font-display font-semibold text-navy leading-[1.05] tracking-tight mb-3" style={{ fontSize: "clamp(36px, 5vw, 56px)", letterSpacing: "-0.02em" }}>
+          <h1 className="font-display font-semibold text-navy leading-[1.05] tracking-tight mb-3" style={{ fontSize: "clamp(28px, 5vw, 56px)", letterSpacing: "-0.02em" }}>
             Design your dream home
             <br />
             <em className="text-gold italic font-medium">inside out.</em>
           </h1>
-          <p className="body-base text-slate max-w-[480px] mb-8">
+          <p className="body-base text-slate max-w-[480px] mb-5 sm:mb-8">
             End-to-end interior design solutions tailored to your style, space, and budget &mdash; built by senior designers, delivered in 45 days.
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 max-w-[520px]">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-3 mb-5 sm:mb-8 max-w-[520px]">
             {[
               { icon: "pencil", label: "Personalised", sub: "Designs" },
               { icon: "clock",  label: "Timely",       sub: "Delivery" },
@@ -141,19 +140,19 @@ function Hero({ openModal }: { openModal: () => void }) {
               { icon: "shield", label: "10 Years",     sub: "Warranty" },
             ].map((b) => (
               <div key={b.label} className="text-center">
-                <div className="w-11 h-11 mx-auto mb-2 rounded-full bg-ivory border border-navy/8 grid place-items-center text-gold-hover">
-                  <Icon kind={b.icon} className="w-5 h-5" />
+                <div className="w-9 h-9 sm:w-11 sm:h-11 mx-auto mb-1 sm:mb-2 rounded-full bg-ivory border border-navy/8 grid place-items-center text-gold-hover">
+                  <Icon kind={b.icon} className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div className="text-[12.5px] font-sans font-semibold text-navy">{b.label}</div>
-                <div className="meta text-slate">{b.sub}</div>
+                <div className="text-[10.5px] sm:text-[12.5px] font-sans font-semibold text-navy leading-tight">{b.label}</div>
+                <div className="meta text-slate text-[10px] sm:text-[11px] leading-tight">{b.sub}</div>
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap gap-3">
-            <button type="button" onClick={openModal} className="btn-primary inline-flex items-center gap-2">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            <button type="button" onClick={openModal} className="btn-primary inline-flex items-center gap-2 h-10 sm:h-12 px-4 sm:px-6 text-[12.5px] sm:text-sm">
               Book Free Consultation <span aria-hidden>&rarr;</span>
             </button>
-            <Link href="#portfolio" className="inline-flex items-center gap-2 h-12 px-6 rounded-btn border border-navy/15 text-navy font-sans font-semibold text-sm hover:border-gold hover:text-gold-hover transition-colors">
+            <Link href="#portfolio" className="inline-flex items-center gap-2 h-10 sm:h-12 px-4 sm:px-6 rounded-btn border border-navy/15 text-navy font-sans font-semibold text-[12.5px] sm:text-sm hover:border-gold hover:text-gold-hover transition-colors">
               View Our Work <span aria-hidden>&rarr;</span>
             </Link>
           </div>
@@ -162,17 +161,17 @@ function Hero({ openModal }: { openModal: () => void }) {
         <Reveal delay={0.15}>
           <div className="relative rounded-card overflow-hidden aspect-[5/4] bg-ivory">
             <Image src="/interiors/hero.jpg" alt="Designed interior" fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
-            <div className="absolute bottom-5 left-5 right-5 sm:right-auto card-base px-4 py-3 flex items-center gap-3">
+            <div className="absolute bottom-3 left-3 right-3 sm:bottom-5 sm:left-5 sm:right-auto card-base px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-3">
               <div className="flex -space-x-2">
                 {[1, 2, 3].map((n) => (
-                  <div key={n} className="w-8 h-8 rounded-full bg-gold border-2 border-white grid place-items-center text-white text-[11px] font-bold">
+                  <div key={n} className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gold border-2 border-white grid place-items-center text-white text-[9px] sm:text-[11px] font-bold">
                     {String.fromCharCode(64 + n)}
                   </div>
                 ))}
               </div>
               <div>
-                <div className="font-sans font-bold text-[16px] text-navy leading-none">3000+</div>
-                <div className="meta text-slate">Homes Designed</div>
+                <div className="font-sans font-bold text-[13px] sm:text-[16px] text-navy leading-none">3000+</div>
+                <div className="meta text-slate text-[10px] sm:text-[11px]">Homes Designed</div>
               </div>
             </div>
           </div>
@@ -191,17 +190,17 @@ function Services() {
   ];
 
   return (
-    <section className="rounded-card bg-ivory/60 py-10 lg:py-14 px-5 lg:px-8 mb-10 lg:mb-14">
+    <section className="rounded-card bg-ivory/60 py-6 sm:py-10 lg:py-14 px-3 sm:px-5 lg:px-8 mb-6 sm:mb-10 lg:mb-14">
       <Reveal>
         <h2 className="h2-section text-navy text-center mb-2">Our Interior Services</h2>
-        <div className="w-10 h-0.5 bg-gold mx-auto mb-10" />
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="w-10 h-0.5 bg-gold mx-auto mb-6 sm:mb-10" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
           {all.slice(0, 8).map((s) => (
-            <Link key={s.slug} href={"#" + s.slug} id={s.slug} className="card-base bg-white px-3 py-6 flex flex-col items-center gap-3 hover:border-gold hover:-translate-y-1 hover:shadow-lg transition-all border border-transparent group">
-              <div className="w-12 h-12 rounded-panel bg-ivory text-gold-hover group-hover:bg-gold group-hover:text-white grid place-items-center transition-colors">
-                <Icon kind={s.icon} className="w-6 h-6" />
+            <Link key={s.slug} href={"#" + s.slug} id={s.slug} className="card-base bg-white px-2 sm:px-3 py-3 sm:py-6 flex flex-col items-center gap-1.5 sm:gap-3 hover:border-gold hover:-translate-y-1 hover:shadow-lg transition-all border border-transparent group">
+              <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-panel bg-ivory text-gold-hover group-hover:bg-gold group-hover:text-white grid place-items-center transition-colors">
+                <Icon kind={s.icon} className="w-4 h-4 sm:w-6 sm:h-6" />
               </div>
-              <div className="text-[13px] font-sans font-semibold text-navy text-center leading-tight">{s.name}</div>
+              <div className="text-[11px] sm:text-[13px] font-sans font-semibold text-navy text-center leading-tight">{s.name}</div>
             </Link>
           ))}
         </div>
@@ -235,48 +234,63 @@ function Packages({
   const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
 
   return (
-    <section id="packages" className="py-10 lg:py-14">
+    <section id="packages" className="py-6 sm:py-10 lg:py-14">
       <Reveal>
         <h2 className="h2-section text-navy text-center mb-2">Interior Design Packages</h2>
         <div className="w-10 h-0.5 bg-gold mx-auto mb-3" />
-        <p className="meta text-slate text-center mb-10">Tap a package to compare. The most popular pick is highlighted.</p>
+        <p className="meta text-slate text-center mb-5 sm:mb-10 px-4">Tap a package to compare. The most popular pick is highlighted.</p>
       </Reveal>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5 mb-5 sm:mb-8">
         {PACKAGES.map((pkg, i) => {
           const isSelected = selectedPackage === pkg.slug;
           const cardCls = [
-            "relative h-full overflow-hidden flex flex-col scroll-mt-[120px]",
-            "card-base cursor-pointer text-left",
+            "relative overflow-hidden flex flex-row sm:flex-col scroll-mt-[120px]",
+            "card-base cursor-pointer text-left w-full",
             "transition-all duration-300",
             "hover:-translate-y-1.5 hover:shadow-hover",
+            // Fixed equal height on mobile so cards visually match
+            "h-[148px] sm:h-auto",
             isSelected ? "ring-2 ring-gold shadow-hover" : "ring-1 ring-transparent hover:ring-gold/30",
+            pkg.popular ? "sm:col-span-2 lg:col-span-1" : "",
           ].join(" ");
 
           return (
-            <Reveal key={pkg.slug} delay={i * 0.08} className="h-full">
+            <Reveal key={pkg.slug} delay={i * 0.08} className={pkg.popular ? "sm:col-span-2 lg:col-span-1" : ""}>
               <button type="button" id={pkg.slug} onClick={() => setSelectedPackage(pkg.slug)} aria-pressed={isSelected} className={cardCls}>
-                {pkg.popular && (
-                  <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-pill bg-success text-white text-[10px] font-bold uppercase tracking-wider">Most Popular</span>
-                )}
+                {/* Selected checkmark — top-left of image area */}
                 {isSelected && (
-                  <span className="absolute top-3 left-3 z-10 w-7 h-7 rounded-full bg-gold text-white grid place-items-center shadow-cta">
-                    <Icon kind="check" className="w-4 h-4" />
+                  <span className="absolute top-2 left-2 sm:top-3 sm:left-3 z-20 w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-gold text-white grid place-items-center shadow-cta">
+                    <Icon kind="check" className="w-3 h-3 sm:w-4 sm:h-4" />
                   </span>
                 )}
 
-                <div className="relative aspect-[16/10] bg-ivory overflow-hidden">
-                  <Image src={pkg.image} alt={pkg.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition-transform duration-[700ms] group-hover:scale-105" />
+                {/* Image — left thumb on mobile, top banner on desktop */}
+                <div className="relative w-[40%] sm:w-full shrink-0 h-full sm:h-auto sm:aspect-[16/10] bg-ivory overflow-hidden">
+                  <Image src={pkg.image} alt={pkg.name} fill sizes="(max-width: 640px) 40vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-[700ms] group-hover:scale-105" />
                 </div>
 
-                <div className="p-5 flex-1 flex flex-col">
-                  <div className="font-sans font-semibold text-[20px] text-navy mb-1">{pkg.name}</div>
-                  <div className="meta text-slate mb-4">{pkg.tagline}</div>
-                  <div className="flex items-baseline gap-2 mb-4">
-                    <span className="font-sans font-bold text-[22px] text-navy tnum">{pkg.price}</span>
-                    <span className="meta text-slate">Onwards</span>
+                <div className="flex-1 min-w-0 p-3 sm:p-5 flex flex-col">
+                  {/* Title row — title left, badge right (mobile: badge stacks under title to avoid collision) */}
+                  <div className="flex items-start justify-between gap-2 mb-0.5 sm:mb-1">
+                    <div className="font-sans font-semibold text-[15px] sm:text-[20px] text-navy leading-tight">{pkg.name}</div>
+                    {pkg.popular && (
+                      <span className="shrink-0 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-pill bg-success text-white text-[8.5px] sm:text-[10px] font-bold uppercase tracking-wider whitespace-nowrap mt-0.5">
+                        <span className="sm:hidden">Popular</span>
+                        <span className="hidden sm:inline">Most Popular</span>
+                      </span>
+                    )}
                   </div>
-                  <ul className="space-y-2 mb-5 flex-1">
+
+                  <div className="meta text-slate text-[11.5px] sm:text-[12px] mb-1.5 sm:mb-4 truncate sm:whitespace-normal">{pkg.tagline}</div>
+
+                  <div className="flex items-baseline gap-1.5 sm:gap-2 mb-1.5 sm:mb-4">
+                    <span className="font-sans font-bold text-[16px] sm:text-[22px] text-navy tnum">{pkg.price}</span>
+                    <span className="meta text-slate text-[10.5px] sm:text-[12px]">Onwards</span>
+                  </div>
+
+                  {/* Desktop: full feature list */}
+                  <ul className="hidden sm:block space-y-2 mb-5 flex-1">
                     {pkg.features.map((f) => (
                       <li key={f} className="meta text-slate flex items-start gap-2">
                         <Icon kind="check" className="w-3.5 h-3.5 text-success mt-0.5 shrink-0" />
@@ -285,8 +299,14 @@ function Packages({
                     ))}
                   </ul>
 
-                  <div role="button" tabIndex={-1} onClick={(e) => { e.stopPropagation(); openModal(); }} className={"h-11 rounded-btn font-sans font-semibold text-sm grid place-items-center transition-colors " + (isSelected ? "bg-gold text-white hover:bg-gold-hover" : "border border-navy/15 text-navy hover:border-gold hover:text-gold-hover hover:bg-gold/5")}>
-                    {isSelected ? "Get this package →" : "Select & View"}
+                  {/* Mobile: compact inclusion count */}
+                  <div className="sm:hidden meta text-slate text-[11px] mb-2 inline-flex items-center gap-1">
+                    <Icon kind="check" className="w-2.5 h-2.5 text-success shrink-0" />
+                    {pkg.features.length} inclusions
+                  </div>
+
+                  <div role="button" tabIndex={-1} onClick={(e) => { e.stopPropagation(); openModal(); }} className={"h-8 sm:h-11 rounded-btn font-sans font-semibold text-[11.5px] sm:text-sm grid place-items-center transition-colors mt-auto " + (isSelected ? "bg-gold text-white hover:bg-gold-hover" : "border border-navy/15 text-navy hover:border-gold hover:text-gold-hover hover:bg-gold/5")}>
+                    {isSelected ? "Get this →" : "Select & View"}
                   </div>
                 </div>
               </button>
@@ -297,12 +317,12 @@ function Packages({
 
       <Reveal delay={0.16}>
         <LeadGate storageKey="lead:interiors" prompt="Cost estimate after a quick intro" onUnlockClick={openModal}>
-          <aside className="card-base p-5 lg:p-6">
-            <h3 className="font-sans font-semibold text-[18px] text-navy text-center mb-5">
-              Cost Calculator <span className="text-slate font-medium">&middot; {PACKAGES.find((p) => p.slug === selectedPackage)?.name}</span>
+          <aside className="card-base p-3.5 sm:p-5 lg:p-6">
+            <h3 className="font-sans font-semibold text-[15px] sm:text-[18px] text-navy text-center mb-3.5 sm:mb-5">
+              Cost Calculator <span className="text-slate font-medium block sm:inline">&middot; {PACKAGES.find((p) => p.slug === selectedPackage)?.name}</span>
             </h3>
 
-            <div className="grid sm:grid-cols-3 gap-4 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 mb-3.5 sm:mb-5">
               <Field label="Property Type">
                 <select value={propertyType} onChange={(e) => setPropertyType(e.target.value)} className="calc-input">
                   {["1 BHK", "2 BHK", "3 BHK", "4 BHK"].map((o) => <option key={o}>{o}</option>)}
@@ -320,16 +340,16 @@ function Packages({
               </Field>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-4 rounded-panel bg-ivory p-4">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 rounded-panel bg-ivory p-3 sm:p-4">
+              <div className="min-w-0">
                 <div className="meta text-slate mb-0.5">Estimated Cost</div>
-                <div className="font-sans font-bold text-[20px] text-success tnum">
+                <div className="font-sans font-bold text-[15px] sm:text-[20px] text-success tnum">
                   {fmt(estimate.low)} <span className="text-slate font-medium">&ndash;</span> {fmt(estimate.high)}
                 </div>
-                <div className="meta text-slate mt-0.5">*Approximate &mdash; final quote on consultation</div>
+                <div className="meta text-slate mt-0.5 text-[10.5px] sm:text-[11px]">*Approximate &mdash; final quote on consultation</div>
               </div>
 
-              <button type="button" onClick={openModal} className="h-11 px-5 rounded-btn bg-gold text-white font-sans font-semibold text-sm hover:bg-gold-hover transition-colors whitespace-nowrap shadow-cta">
+              <button type="button" onClick={openModal} className="h-10 sm:h-11 px-4 sm:px-5 rounded-btn bg-gold text-white font-sans font-semibold text-[12.5px] sm:text-sm hover:bg-gold-hover transition-colors whitespace-nowrap shadow-cta shrink-0 w-full sm:w-auto">
                 Get Free Quote
               </button>
             </div>
@@ -342,7 +362,7 @@ function Packages({
                 border-radius: 8px;
                 padding: 10px 14px;
                 font-family: var(--font-inter), system-ui, sans-serif;
-                font-size: 14px;
+                font-size: 13.5px;
                 font-weight: 500;
                 color: hsl(var(--navy));
                 outline: none;
@@ -361,7 +381,7 @@ function Packages({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[12.5px] font-sans font-semibold text-navy mb-1.5 block">{label}</span>
+      <span className="text-[11.5px] sm:text-[12.5px] font-sans font-semibold text-navy mb-1 sm:mb-1.5 block">{label}</span>
       {children}
     </label>
   );
@@ -372,16 +392,16 @@ function Portfolio({ openModal }: { openModal: () => void }) {
   const visible = filter === "all" ? PORTFOLIO : PORTFOLIO.filter((p) => p.category === filter);
 
   return (
-    <section id="portfolio" className="rounded-card bg-ivory/60 py-10 lg:py-14 px-5 lg:px-8 mb-10 lg:mb-14">
+    <section id="portfolio" className="rounded-card bg-ivory/60 py-6 sm:py-10 lg:py-14 px-3 sm:px-5 lg:px-8 mb-6 sm:mb-10 lg:mb-14">
       <Reveal>
         <h2 className="h2-section text-navy text-center mb-2">See Our Work</h2>
-        <div className="w-10 h-0.5 bg-gold mx-auto mb-8" />
+        <div className="w-10 h-0.5 bg-gold mx-auto mb-5 sm:mb-8" />
       </Reveal>
 
-      <div className="flex items-center justify-center gap-2 flex-wrap mb-8">
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap sm:flex-wrap sm:justify-center mb-5 sm:mb-8 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 no-scrollbar">
         {FILTERS.map((f) => {
           const active = filter === f.slug;
-          const cls = "px-4 py-2 rounded-pill text-[13px] font-sans font-semibold transition-all " + (active ? "bg-success text-white shadow-cta scale-105" : "bg-white border border-navy/10 text-slate hover:text-navy hover:border-gold hover:-translate-y-0.5");
+          const cls = "shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-pill text-[11.5px] sm:text-[13px] font-sans font-semibold transition-all whitespace-nowrap " + (active ? "bg-success text-white shadow-cta scale-105" : "bg-white border border-navy/10 text-slate hover:text-navy hover:border-gold hover:-translate-y-0.5");
           return (
             <button key={f.slug} type="button" onClick={() => setFilter(f.slug)} className={cls}>{f.label}</button>
           );
@@ -389,43 +409,50 @@ function Portfolio({ openModal }: { openModal: () => void }) {
       </div>
 
       <LeadGate storageKey="lead:interiors" prompt="Full portfolio after a quick intro" onUnlockClick={openModal}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
           {visible.map((p) => (
             <Reveal key={p.id} className="h-full">
               <article className="card-base bg-white overflow-hidden group h-full transition-all duration-300 hover:-translate-y-1.5 hover:shadow-hover">
                 <div className="relative aspect-[4/3] bg-ivory overflow-hidden">
-                  <Image src={p.image} alt={p.title} fill sizes="(max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-[800ms] group-hover:scale-[1.08]" />
-                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-pill bg-white/95 backdrop-blur-sm text-[11px] font-sans font-semibold text-navy capitalize">
+                  <Image src={p.image} alt={p.title} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-[800ms] group-hover:scale-[1.08]" />
+                  <span className="absolute top-2 left-2 sm:top-3 sm:left-3 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-pill bg-white/95 backdrop-blur-sm text-[9.5px] sm:text-[11px] font-sans font-semibold text-navy capitalize">
                     {p.category.replace("-", " ")}
                   </span>
                 </div>
-                <div className="p-4">
-                  <div className="font-sans font-semibold text-[15px] text-navy mb-0.5 transition-colors group-hover:text-gold-hover">{p.title}</div>
-                  <div className="meta text-slate">{p.location}</div>
+                <div className="p-2.5 sm:p-4">
+                  <div className="font-sans font-semibold text-[12.5px] sm:text-[15px] text-navy mb-0.5 transition-colors group-hover:text-gold-hover leading-tight">{p.title}</div>
+                  <div className="meta text-slate text-[10.5px] sm:text-[11px] leading-tight">{p.location}</div>
                 </div>
               </article>
             </Reveal>
           ))}
         </div>
       </LeadGate>
+
+      <style jsx>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </section>
   );
 }
 
 function Process() {
   return (
-    <section className="py-10 lg:py-14">
+    <section className="py-6 sm:py-10 lg:py-14">
       <Reveal>
         <h2 className="h2-section text-navy text-center mb-2">How it works</h2>
-        <div className="w-10 h-0.5 bg-gold mx-auto mb-10" />
+        <div className="w-10 h-0.5 bg-gold mx-auto mb-6 sm:mb-10" />
       </Reveal>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-5">
         {PROCESS.map((s, i) => (
           <Reveal key={s.step} delay={i * 0.08} className="h-full">
-            <div className="card-base p-6 h-full flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-hover hover:border-gold/30 group">
-              <div className="font-display font-semibold text-[40px] text-gold leading-none mb-3 tnum transition-transform group-hover:scale-110 origin-left">{s.step}</div>
-              <div className="font-sans font-semibold text-[17px] text-navy mb-2">{s.title}</div>
-              <p className="meta text-slate flex-1">{s.desc}</p>
+            <div className="card-base p-4 sm:p-6 h-full flex flex-row sm:flex-col items-start gap-3 sm:gap-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-hover hover:border-gold/30 group">
+              <div className="font-display font-semibold text-[28px] sm:text-[40px] text-gold leading-none mb-0 sm:mb-3 tnum transition-transform group-hover:scale-110 origin-left shrink-0">{s.step}</div>
+              <div className="flex-1 min-w-0">
+                <div className="font-sans font-semibold text-[14px] sm:text-[17px] text-navy mb-1 sm:mb-2 leading-tight">{s.title}</div>
+                <p className="meta text-slate text-[12px] sm:text-[13px] leading-relaxed">{s.desc}</p>
+              </div>
             </div>
           </Reveal>
         ))}
@@ -437,24 +464,24 @@ function Process() {
 function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
   return (
-    <section className="rounded-card bg-ivory/60 py-10 lg:py-14 px-5 lg:px-8">
+    <section className="rounded-card bg-ivory/60 py-6 sm:py-10 lg:py-14 px-3 sm:px-5 lg:px-8">
       <Reveal>
         <h2 className="h2-section text-navy text-center mb-2">Common questions</h2>
-        <div className="w-10 h-0.5 bg-gold mx-auto mb-10" />
+        <div className="w-10 h-0.5 bg-gold mx-auto mb-6 sm:mb-10" />
       </Reveal>
-      <div className="space-y-3 max-w-[760px] mx-auto">
+      <div className="space-y-2 sm:space-y-3 max-w-[760px] mx-auto">
         {FAQS.map((f, i) => {
           const isOpen = open === i;
           return (
             <Reveal key={i}>
-              <details open={isOpen} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open ? i : null)} className="card-base bg-white px-5 py-4 group transition-all hover:border-gold/30">
-                <summary className="list-none cursor-pointer flex items-center justify-between gap-4">
-                  <span className="font-sans font-semibold text-[15.5px] text-navy">{f.q}</span>
-                  <span className={"w-7 h-7 rounded-full bg-ivory grid place-items-center text-navy transition-all duration-300 shrink-0 " + (isOpen ? "rotate-45 bg-gold text-white" : "group-hover:bg-gold/15")}>
-                    <Icon kind="plus" className="w-4 h-4" />
+              <details open={isOpen} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open ? i : null)} className="card-base bg-white px-3.5 sm:px-5 py-3 sm:py-4 group transition-all hover:border-gold/30">
+                <summary className="list-none cursor-pointer flex items-center justify-between gap-2.5 sm:gap-4">
+                  <span className="font-sans font-semibold text-[13px] sm:text-[15.5px] text-navy leading-snug">{f.q}</span>
+                  <span className={"w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-ivory grid place-items-center text-navy transition-all duration-300 shrink-0 " + (isOpen ? "rotate-45 bg-gold text-white" : "group-hover:bg-gold/15")}>
+                    <Icon kind="plus" className="w-3 h-3 sm:w-4 sm:h-4" />
                   </span>
                 </summary>
-                <p className="body-base text-slate mt-3">{f.a}</p>
+                <p className="body-base text-slate mt-2.5 sm:mt-3 text-[12.5px] sm:text-[14px] leading-relaxed">{f.a}</p>
               </details>
             </Reveal>
           );

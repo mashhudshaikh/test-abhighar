@@ -68,7 +68,7 @@ export default function Hero() {
   const [locality, setLocality] = useState("Hinjewadi");
   const [priceMin, setPriceMin] = useState(PRICE_MIN_BOUND);
   const [priceMax, setPriceMax] = useState(PRICE_MAX_BOUND);
-  const [typeSubChoice, setTypeSubChoice] = useState<string>(PROPERTY_TYPE_CONFIG.Apartment.options[1]); // "2 BHK"
+  const [typeSubChoice, setTypeSubChoice] = useState<string>(PROPERTY_TYPE_CONFIG.Apartment.options[1]);
   const [possession, setPossession] = useState("Ready to Move");
   const [openField, setOpenField] = useState<string | null>(null);
 
@@ -101,7 +101,6 @@ export default function Hero() {
     setPropertyType(nextKey);
     const config = PROPERTY_TYPE_CONFIG[nextKey];
     if (!config) return;
-    // Pick "2 BHK" if available (familiar default for apartments/villas), else first option
     const preferred = config.options.find((o) => o === "2 BHK") ?? config.options[0];
     setTypeSubChoice(preferred);
   };
@@ -144,7 +143,7 @@ export default function Hero() {
   function handleMouseLeave() { mx.set(0); my.set(0); }
 
   return (
-    <section ref={heroRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className="relative isolate min-h-[600px] lg:min-h-[720px] overflow-hidden bg-navy text-white pt-20 sm:pt-24 lg:pt-32 pb-16 lg:pb-20">
+    <section ref={heroRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className="relative isolate min-h-[600px] lg:min-h-[720px] overflow-hidden bg-navy text-white pt-20 sm:pt-24 lg:pt-32 pb-24 sm:pb-28 lg:pb-32">
 
       <motion.div className="absolute inset-[-10%_-5%] z-0 will-change-transform" style={{ y: photoY, x: photoMx, scale: photoS }}>
         <motion.div className="relative w-full h-full" style={{ y: photoMy }}>
@@ -230,7 +229,7 @@ export default function Hero() {
                     setOpenField={setOpenField}
                   />
 
-                  <SearchField id="possession" label="Possession" value={possession} onChange={setPossession} options={["New Launch", "Under Construction", "Nearing Possession", "Ready to Move"]} openField={openField} setOpenField={setOpenField} last />
+                  <SearchField id="possession" label="Possession" value={possession} onChange={setPossession} options={["New Launch", "Under Construction", "Nearing Possession", "Ready to Move"]} openField={openField} setOpenField={setOpenField} last dropPosition="up" />
                 </div>
 
                 <div className="flex items-center justify-center p-2 lg:p-2">
@@ -283,6 +282,7 @@ function SearchField({
   openField,
   setOpenField,
   last,
+  dropPosition = "auto",
 }: {
   id: string;
   label: string;
@@ -292,8 +292,16 @@ function SearchField({
   openField: string | null;
   setOpenField: (id: string | null) => void;
   last?: boolean;
+  dropPosition?: "auto" | "up";
 }) {
   const isOpen = openField === id;
+
+  // On desktop only, "up" makes the dropdown open above the field.
+  // On mobile, fields stack vertically so direction doesn't matter — keep downward.
+  const dropClass = dropPosition === "up"
+    ? "absolute lg:bottom-full lg:top-auto top-full lg:mb-1.5 mt-1.5 left-2 right-2 sm:left-0 sm:right-0 z-50"
+    : "absolute top-full left-2 right-2 sm:left-0 sm:right-0 mt-1.5 z-50";
+
   return (
     <div
       data-search-field
@@ -321,8 +329,8 @@ function SearchField({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-2 right-2 sm:left-0 sm:right-0 mt-1.5 z-30 bg-white border border-navy/10 rounded-2xl shadow-[0_20px_50px_hsl(var(--navy)/0.25)] overflow-hidden lg:min-w-[200px]">
-          <ul role="listbox" className="max-h-[280px] overflow-y-auto py-1.5">
+        <div className={dropClass + " bg-white border border-navy/10 rounded-2xl shadow-[0_20px_50px_hsl(var(--navy)/0.25)] overflow-hidden lg:min-w-[200px]"}>
+          <ul role="listbox" className="max-h-[240px] overflow-y-auto py-1.5">
             {options.map((o) => {
               const selected = o === value;
               return (
@@ -393,7 +401,7 @@ function BudgetField({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-2 right-2 sm:left-0 sm:right-auto lg:left-1/2 lg:right-auto lg:-translate-x-1/2 mt-1.5 z-30 bg-white border border-navy/10 rounded-2xl shadow-[0_20px_50px_hsl(var(--navy)/0.25)] p-4 sm:p-5 lg:w-[380px] sm:w-[360px]">
+        <div className="absolute top-full left-2 right-2 sm:left-0 sm:right-auto lg:left-1/2 lg:right-auto lg:-translate-x-1/2 mt-1.5 z-50 bg-white border border-navy/10 rounded-2xl shadow-[0_20px_50px_hsl(var(--navy)/0.25)] p-4 sm:p-5 lg:w-[380px] sm:w-[360px]">
           <RangeSlider
             min={PRICE_MIN_BOUND}
             max={PRICE_MAX_BOUND}
