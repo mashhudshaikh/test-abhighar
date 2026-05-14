@@ -16,7 +16,6 @@ const SLIDES = [
 
 const SLIDE_DURATION = 6000;
 
-// Budget config — in ₹ Lakhs. 0 to 1000 = ₹10 Cr. Sentinel 1000 = "10 Cr+".
 const PRICE_MIN_BOUND = 0;
 const PRICE_MAX_BOUND = 1000;
 const PRICE_STEP = 10;
@@ -35,7 +34,6 @@ const PRICE_TICKS = [
   { value: 1000, label: "10 Cr+", major: true },
 ];
 
-// Property type → 4th field (label + options) mapping
 type PropertyTypeKey = "Apartment" | "Villa" | "Duplex" | "Plot" | "Studio" | "Commercial";
 
 const PROPERTY_TYPE_OPTIONS: PropertyTypeKey[] = ["Apartment", "Villa", "Duplex", "Plot", "Studio", "Commercial"];
@@ -62,6 +60,15 @@ export default function Hero() {
   const heroRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { scrollY } = useScroll();
+
+  // Detect touch / low-power devices ONCE. We skip parallax and heavy effects here.
+  const [isLite, setIsLite] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setIsLite(coarse || reduced);
+  }, []);
 
   const [slide, setSlide] = useState(0);
   const [propertyType, setPropertyType] = useState<PropertyTypeKey>("Apartment");
@@ -95,7 +102,6 @@ export default function Hero() {
     };
   }, []);
 
-  // When property type changes, reset the sub-choice to a sensible default for that type
   const handlePropertyTypeChange = (next: string) => {
     const nextKey = next as PropertyTypeKey;
     setPropertyType(nextKey);
@@ -117,6 +123,7 @@ export default function Hero() {
 
   const currentTypeConfig = PROPERTY_TYPE_CONFIG[propertyType];
 
+  // Heavy parallax/spring stuff — created ALWAYS (hooks rule), but only applied via style when !isLite
   const sSpring = { damping: 25, stiffness: 100, mass: 0.5 };
   const photoY = useSpring(useTransform(scrollY, [0, 900], [0, 240]), sSpring);
   const blobsY = useSpring(useTransform(scrollY, [0, 900], [0, 120]), sSpring);
@@ -135,20 +142,37 @@ export default function Hero() {
   const textMy = useTransform(smy, [-1, 1], [-6, 6]);
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    if (!heroRef.current) return;
+    if (isLite || !heroRef.current) return;
     const r = heroRef.current.getBoundingClientRect();
     mx.set(((e.clientX - r.left) / r.width - 0.5) * 2);
     my.set(((e.clientY - r.top) / r.height - 0.5) * 2);
   }
-  function handleMouseLeave() { mx.set(0); my.set(0); }
+  function handleMouseLeave() {
+    if (isLite) return;
+    mx.set(0); my.set(0);
+  }
+
+  // Conditional style objects — empty {} means no transform/animation
+  const photoStyle = isLite ? {} : { y: photoY, x: photoMx, scale: photoS };
+  const photoInnerStyle = isLite ? {} : { y: photoMy };
+  const blobsStyle = isLite ? {} : { y: blobsY, x: blobsMx };
+  const blobsInnerStyle = isLite ? {} : { y: blobsMy };
+  const textStyle = isLite ? {} : { y: textY, x: textMx, opacity: textOp };
+  const textInnerStyle = isLite ? {} : { y: textMy };
 
   return (
-    <section ref={heroRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className="relative isolate min-h-[600px] lg:min-h-[720px] overflow-hidden bg-navy text-white pt-20 sm:pt-24 lg:pt-32 pb-24 sm:pb-28 lg:pb-32">
+    <section
+      ref={heroRef}
+      onMouseMove={isLite ? undefined : handleMouseMove}
+      onMouseLeave={isLite ? undefined : handleMouseLeave}
+      className="relative isolate min-h-[600px] lg:min-h-[720px] overflow-hidden bg-navy text-white pt-20 sm:pt-24 lg:pt-32 pb-24 sm:pb-28 lg:pb-32"
+    >
 
-      <motion.div className="absolute inset-[-10%_-5%] z-0 will-change-transform" style={{ y: photoY, x: photoMx, scale: photoS }}>
-        <motion.div className="relative w-full h-full" style={{ y: photoMy }}>
+      {/* Photo background — parallax only on desktop. On mobile a static image. */}
+      <motion.div className="absolute inset-[-10%_-5%] z-0 will-change-transform" style={photoStyle}>
+        <motion.div className="relative w-full h-full" style={photoInnerStyle}>
           <AnimatePresence>
-            <motion.div key={slide} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.5, ease: "easeInOut" }} className="absolute inset-0">
+            <motion.div key={slide} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: isLite ? 0.6 : 1.5, ease: "easeInOut" }} className="absolute inset-0">
               <Image src={SLIDES[slide]} alt="" fill sizes="100vw" priority className="object-cover brightness-[0.5] saturate-[0.85] contrast-[1.08]" />
             </motion.div>
           </AnimatePresence>
@@ -156,16 +180,26 @@ export default function Hero() {
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 80% 0%, hsl(var(--gold) / 0.2), transparent 50%), radial-gradient(ellipse at 20% 100%, hsl(var(--navy-80) / 0.55), transparent 55%), linear-gradient(180deg, hsl(var(--navy) / 0.55) 0%, hsl(var(--navy) / 0.30) 40%, hsl(var(--navy) / 0.85) 100%)" }} />
       </motion.div>
 
-      <motion.div className="absolute inset-0 z-[1] pointer-events-none" style={{ y: blobsY, x: blobsMx }}>
-        <motion.div style={{ y: blobsMy }} className="absolute inset-0">
-          <div className="absolute rounded-full blur-[80px] animate-drift-1" style={{ width: 560, height: 560, top: -100, right: -160, background: "radial-gradient(circle, hsl(var(--gold) / 0.45), transparent 70%)" }} />
-          <div className="absolute rounded-full blur-[80px] animate-drift-2" style={{ width: 520, height: 520, bottom: -180, left: -180, background: "radial-gradient(circle, hsl(var(--gold) / 0.28), transparent 70%)" }} />
-          <div className="absolute rounded-full blur-[80px] animate-drift-3" style={{ width: 420, height: 420, top: "38%", left: "32%", background: "radial-gradient(circle, hsl(var(--brass) / 0.32), transparent 70%)" }} />
-          <div className="absolute rounded-full blur-[80px] animate-drift-4" style={{ width: 340, height: 340, top: "18%", right: "18%", background: "radial-gradient(circle, hsl(var(--navy-80) / 0.5), transparent 70%)" }} />
+      {/* Decorative blobs — only render heavy ones on desktop. Mobile gets 2 small static ones. */}
+      {!isLite ? (
+        <motion.div className="absolute inset-0 z-[1] pointer-events-none" style={blobsStyle}>
+          <motion.div style={blobsInnerStyle} className="absolute inset-0">
+            <div className="absolute rounded-full blur-[80px] animate-drift-1" style={{ width: 560, height: 560, top: -100, right: -160, background: "radial-gradient(circle, hsl(var(--gold) / 0.45), transparent 70%)" }} />
+            <div className="absolute rounded-full blur-[80px] animate-drift-2" style={{ width: 520, height: 520, bottom: -180, left: -180, background: "radial-gradient(circle, hsl(var(--gold) / 0.28), transparent 70%)" }} />
+            <div className="absolute rounded-full blur-[80px] animate-drift-3" style={{ width: 420, height: 420, top: "38%", left: "32%", background: "radial-gradient(circle, hsl(var(--brass) / 0.32), transparent 70%)" }} />
+            <div className="absolute rounded-full blur-[80px] animate-drift-4" style={{ width: 340, height: 340, top: "18%", right: "18%", background: "radial-gradient(circle, hsl(var(--navy-80) / 0.5), transparent 70%)" }} />
+          </motion.div>
         </motion.div>
-      </motion.div>
+      ) : (
+        // Mobile lite — 2 smaller, no-blur, no-animation ambient highlights
+        <div className="absolute inset-0 z-[1] pointer-events-none">
+          <div className="absolute rounded-full opacity-30" style={{ width: 320, height: 320, top: -80, right: -100, background: "radial-gradient(circle, hsl(var(--gold) / 0.35), transparent 70%)" }} />
+          <div className="absolute rounded-full opacity-25" style={{ width: 280, height: 280, bottom: -80, left: -80, background: "radial-gradient(circle, hsl(var(--gold) / 0.25), transparent 70%)" }} />
+        </div>
+      )}
 
-      <div className="absolute inset-0 z-[2] grain opacity-40 pointer-events-none" />
+      {/* Grain — desktop only. Mobile doesn't need this much detail. */}
+      {!isLite && <div className="absolute inset-0 z-[2] grain opacity-40 pointer-events-none" />}
 
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[4] flex gap-2">
         {SLIDES.map((_, i) => (
@@ -173,12 +207,12 @@ export default function Hero() {
         ))}
       </div>
 
-      <motion.div className="relative z-[3] container-x text-center max-w-[1080px]" style={{ y: textY, x: textMx, opacity: textOp }}>
-        <motion.div style={{ y: textMy }}>
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }} className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-1.5 rounded-3xl sm:rounded-pill bg-white/10 backdrop-blur-md border border-white/20 mb-6 sm:mb-7 shadow-lg max-w-[95vw]">
+      <motion.div className="relative z-[3] container-x text-center max-w-[1080px]" style={textStyle}>
+        <motion.div style={textInnerStyle}>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }} className={"inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-1.5 rounded-3xl sm:rounded-pill border border-white/20 mb-6 sm:mb-7 shadow-lg max-w-[95vw] " + (isLite ? "bg-navy/40" : "bg-white/10 backdrop-blur-md")}>
             <span className="inline-flex items-center gap-2">
               <span className="relative w-1.5 h-1.5 rounded-full bg-gold">
-                <span className="absolute inset-0 rounded-full bg-gold animate-ping opacity-50" />
+                {!isLite && <span className="absolute inset-0 rounded-full bg-gold animate-ping opacity-50" />}
               </span>
               <span className="font-sans text-[12px] sm:text-[13px] font-medium text-white whitespace-nowrap">340+ curated homes</span>
             </span>
@@ -186,7 +220,11 @@ export default function Hero() {
           </motion.div>
 
           <h1 className="h1-hero mb-6" style={{ textShadow: "0 2px 24px hsl(var(--navy) / 0.5)" }}>
-            <SplitText text="Your Perfect Home in" highlight="" delay={0.15} stagger={0.08} />
+            {isLite ? (
+              <>Your Perfect Home in</>
+            ) : (
+              <SplitText text="Your Perfect Home in" highlight="" delay={0.15} stagger={0.08} />
+            )}
             <br />
             <span className="text-gold font-display not-italic">Pune</span> Awaits.
           </h1>
@@ -218,7 +256,6 @@ export default function Hero() {
                     setOpenField={setOpenField}
                   />
 
-                  {/* Dynamic 4th field — label + options change based on property type */}
                   <SearchField
                     id="typeSubChoice"
                     label={currentTypeConfig.label}
@@ -260,7 +297,7 @@ export default function Hero() {
             ].map((s, i) => (
               <div key={i} className="flex flex-col items-center gap-1">
                 <span className="font-sans font-semibold text-[26px] sm:text-[32px] tnum leading-none text-white">
-                  <Counter to={s.num} />
+                  {isLite ? s.num : <Counter to={s.num} />}
                   <sup className="text-[0.55em] text-gold font-medium ml-0.5">{s.sup}</sup>
                 </span>
                 <span className="font-sans font-semibold uppercase text-[10px] sm:text-[11px] tracking-[0.14em] text-white/70 text-center">{s.label}</span>
@@ -296,8 +333,6 @@ function SearchField({
 }) {
   const isOpen = openField === id;
 
-  // On desktop only, "up" makes the dropdown open above the field.
-  // On mobile, fields stack vertically so direction doesn't matter — keep downward.
   const dropClass = dropPosition === "up"
     ? "absolute lg:bottom-full lg:top-auto top-full lg:mb-1.5 mt-1.5 left-2 right-2 sm:left-0 sm:right-0 z-50"
     : "absolute top-full left-2 right-2 sm:left-0 sm:right-0 mt-1.5 z-50";
