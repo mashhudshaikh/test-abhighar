@@ -53,7 +53,7 @@ export default function Header() {
               <BrandMark size={40} glow={overHero} className="sm:!w-12 sm:!h-12" />
               <div className="flex flex-col leading-none min-w-0">
                 <span className={cn("font-display font-semibold text-[16px] sm:text-[20px] tracking-tight transition-colors duration-500 truncate", overHero ? "text-white" : "text-navy")} style={brandTextStyle}>Abhi Ghar</span>
-                <span className={cn("font-sans font-semibold uppercase text-[9px] sm:text-[10px] mt-0.5 sm:mt-1 tracking-[0.14em] sm:tracking-[0.16em] transition-colors duration-500 truncate", overHero ? "text-gold" : "text-gold-hover")} style={brandTagStyle}>Pune &middot; Est. 2018</span>
+                <span className={cn("font-sans font-semibold uppercase text-[9px] sm:text-[10px] mt-0.5 sm:mt-1 tracking-[0.14em] sm:tracking-[0.16em] transition-colors duration-500 truncate", overHero ? "text-gold" : "text-gold-hover")} style={brandTagStyle}>Pune &middot; Est. 2020</span>
               </div>
             </Link>
 

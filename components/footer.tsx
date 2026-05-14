@@ -93,18 +93,18 @@ export default function Footer() {
             </div>
 
             <div className="flex gap-2.5 flex-wrap">
-              <a href="tel:+919800000234" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-pill bg-gold text-white meta font-semibold shadow-cta transition-all hover:bg-gold-hover hover:-translate-y-0.5">
+              <a href="tel:+919890122755" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-pill bg-gold text-white meta font-semibold shadow-cta transition-all hover:bg-gold-hover hover:-translate-y-0.5">
                 <span aria-hidden>&#9742;</span> Schedule a 15-min call
               </a>
-              <a href="https://wa.me/919800000234" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-pill bg-[#25D366] text-white meta font-semibold transition-all hover:bg-[#1da851] hover:-translate-y-0.5">
-                <span aria-hidden>&#128172;</span> +91 98XXX XX234
+              <a href="https://wa.me/919890122755" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-pill bg-[#25D366] text-white meta font-semibold transition-all hover:bg-[#1da851] hover:-translate-y-0.5">
+                <span aria-hidden>&#128172;</span> +91 98901 22755
               </a>
             </div>
           </div>
 
           <FooterCol title="Locations" items={["Hinjewadi","Baner","Kharadi","Wakad","Aundh","Koregaon Park","Chinchwad & Akurdi","Hadapsar"]} />
           <FooterCol title="Quick Links" items={["All Projects","New Launches","Ready to Move","Interior Design","EMI Calculator","About Us","Contact"]} />
-          <FooterCol title="Reach Us" items={["5th Floor, ICC Tower","Senapati Bapat Road, Pune","+91 98XXX XX234","hello@abhighar.in","Mon – Sat · 10 AM – 8 PM"]} plain />
+          <FooterCol title="Reach Us" items={["5th Floor, ICC Tower","Senapati Bapat Road, Pune","+91 919890122755","hello@abhighar.in","Mon – Sat · 10 AM – 8 PM"]} plain />
         </div>
 
         <div className="pt-7 flex justify-between items-center flex-wrap gap-5">

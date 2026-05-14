@@ -1,10 +1,10 @@
 export const localities = [
-  { slug: "hinjwadi", name: "Hinjewadi", count: 142, from: "₹65L", tag: "IT Corridor", image: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80" },
-  { slug: "baner", name: "Baner", count: 98, from: "₹1.2 Cr", tag: "Premium Living", image: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=800&q=80" },
-  { slug: "koregaon", name: "Koregaon Park", count: 76, from: "₹2.5 Cr", tag: "Heritage Luxe", image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" },
-  { slug: "kharadi", name: "Kharadi", count: 61, from: "₹85L", tag: "Riverside Calm", image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80" },
-  { slug: "wakad", name: "Wakad", count: 88, from: "₹70L", tag: "Family Favourite", image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=800&q=80" },
-  { slug: "aundh", name: "Aundh", count: 54, from: "₹1.4 Cr", tag: "Old-World Charm", image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=800&q=80" },
+  { slug: "aundh",    name: "Aundh",         count: 54,  from: "₹1.4 Cr", tag: "Old-World Charm",   image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=800&q=80" },
+  { slug: "baner",    name: "Baner",         count: 98,  from: "₹1.2 Cr", tag: "Premium Living",    image: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=800&q=80" },
+  { slug: "hinjwadi", name: "Hinjewadi",     count: 142, from: "₹65L",    tag: "IT Corridor",       image: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80" },
+  { slug: "kharadi",  name: "Kharadi",       count: 61,  from: "₹85L",    tag: "Riverside Calm",    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80" },
+  { slug: "koregaon", name: "Koregaon Park", count: 76,  from: "₹2.5 Cr", tag: "Heritage Luxe",     image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" },
+  { slug: "wakad",    name: "Wakad",         count: 88,  from: "₹70L",    tag: "Family Favourite",  image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=800&q=80" },
 ] as const;
 
 export type LocalitySlug = (typeof localities)[number]["slug"];
@@ -16,10 +16,10 @@ export const projects = [
 ] as const;
 
 export const advisors = [
-  { name: "Aditya Khanna", role: "Founder · Senior Advisor", exp: "16 yrs", area: "Pune Markets", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80" },
-  { name: "Meera Joshi", role: "Head · West Pune", exp: "11 yrs", area: "Baner & Hinjewadi", image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=240&q=80" },
-  { name: "Rohan Deshmukh", role: "Head · East Pune", exp: "9 yrs", area: "Kharadi & Hadapsar", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80" },
-  { name: "Priya Bhandari", role: "Lead · Legal & Loans", exp: "13 yrs", area: "Documentation", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80" },
+  { name: "Aditya Khanna",   role: "Founder · Senior Advisor",  exp: "16 yrs", area: "Pune Markets",        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80" },
+  { name: "Meera Joshi",     role: "Head · West Pune",          exp: "11 yrs", area: "Baner & Hinjewadi",   image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=240&q=80" },
+  { name: "Rohan Deshmukh",  role: "Head · East Pune",          exp: "9 yrs",  area: "Kharadi & Hadapsar",  image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80" },
+  { name: "Priya Bhandari",  role: "Lead · Legal & Loans",      exp: "13 yrs", area: "Documentation",       image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80" },
 ] as const;
 
 export const testimonials = [
@@ -111,7 +111,6 @@ export type Property = {
   amenities: { title: string; desc: string; icon: string }[];
   nearby: { place: string; distance: string }[];
   advisor: { initials: string; name: string; role: string; rating: number };
-  // New Info Container Fields from Screenshot 2026-05-13 at 1.06.24 AM.png
   landParcel: string;
   towers: string;
   floors: string;
@@ -146,6 +145,35 @@ const STD_NEARBY = [
   { place: "Symbiosis University", distance: "4 km · 10 min" },
 ];
 
+// Locality-specific nearby anchors so each project page reads naturally
+const NEARBY_AUNDH = [
+  { place: "Aundh ITI Metro",      distance: "1.2 km · 4 min" },
+  { place: "Symbiosis Institute",  distance: "2 km · 6 min" },
+  { place: "Westend Mall",         distance: "1.8 km · 5 min" },
+  { place: "Pune Airport",         distance: "11 km · 22 min" },
+];
+
+const NEARBY_BANER = [
+  { place: "Balewadi High Street", distance: "2 km · 6 min" },
+  { place: "Mumbai-Pune Highway",  distance: "1.5 km · 4 min" },
+  { place: "Symbiosis Univ. Lavale", distance: "9 km · 18 min" },
+  { place: "Pune Airport",         distance: "18 km · 35 min" },
+];
+
+const NEARBY_KHARADI = [
+  { place: "EON IT Park",          distance: "1 km · 3 min" },
+  { place: "Phoenix Marketcity",   distance: "4 km · 12 min" },
+  { place: "Pune Airport",         distance: "9 km · 18 min" },
+  { place: "Mula-Mutha Riverfront", distance: "0.8 km · 3 min" },
+];
+
+const NEARBY_WAKAD = [
+  { place: "Hinjwadi IT Park",     distance: "3 km · 8 min" },
+  { place: "Wakad Bus Terminal",   distance: "1.2 km · 4 min" },
+  { place: "Aditya Birla Hospital", distance: "2.5 km · 7 min" },
+  { place: "Mumbai-Pune Highway",  distance: "1.5 km · 5 min" },
+];
+
 const STD_ADVISOR = { initials: "RM", name: "Riya Mehta", role: "Senior Advisor", rating: 4.9 };
 
 function P(p: Partial<Property> & Pick<Property,
@@ -160,7 +188,6 @@ function P(p: Partial<Property> & Pick<Property,
     advisor: STD_ADVISOR,
     totalUnits: 510,
     areaRange: "850 – 1,550 sqft",
-    // New defaults based on Screenshot 2026-05-13 at 1.06.24 AM.png
     landParcel: "4.5 Acres",
     towers: "6",
     floors: "G+28",
@@ -175,6 +202,114 @@ function P(p: Partial<Property> & Pick<Property,
 }
 
 export const properties: Property[] = [
+  /* — Aundh — */
+  P({
+    slug: "paranjape-blueridge-aundh", name: "Paranjape Blueridge", builder: "Paranjape Schemes",
+    localitySlug: "aundh", localityArea: "Aundh, Pune West", status: "ready",
+    bhkRange: "2, 3 BHK", bhkOptions: [2, 3], areaMin: "1,050 sqft min",
+    areaRange: "1,050 – 1,650 sqft",
+    possessionLabel: "Ready to Move", possessionYear: 2024,
+    priceDisplay: "₹ 1.4 Cr – 2.2 Cr", priceMin: 140, priceMax: 220,
+    thumbnail: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100114502",
+    totalUnits: 186,
+    landParcel: "3.2 Acres", towers: "3", floors: "G+18",
+    reraPossession: "Ready",
+    nearby: NEARBY_AUNDH,
+    bhkConfigs: [
+      { config: "2 BHK", area: "1,050 sqft", from: "Starts ₹1.4 Cr" },
+      { config: "3 BHK", area: "1,650 sqft", from: "Starts ₹2.2 Cr" },
+    ],
+    about:
+      "Paranjape Blueridge in Aundh is a boutique 186-unit development from one of Pune's oldest names in real estate. Set 1.2 km from Aundh ITI Metro and walking distance from Westend Mall, the project offers thoughtfully laid-out 2 and 3 BHK homes in a mature, tree-lined neighbourhood. Possession is immediate.",
+  }),
+  P({
+    slug: "kolte-patil-aundh-square", name: "Kolte Patil Aundh Square", builder: "Kolte Patil",
+    localitySlug: "aundh", localityArea: "Aundh, Pune West", status: "under-construction",
+    bhkRange: "3, 4 BHK", bhkOptions: [3, 4], areaMin: "1,450 sqft min",
+    areaRange: "1,450 – 2,400 sqft",
+    possessionLabel: "Possession Jun 2026", possessionYear: 2026,
+    priceDisplay: "₹ 2.1 Cr – 3.6 Cr", priceMin: 210, priceMax: 360,
+    thumbnail: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100119087",
+    totalUnits: 240,
+    landParcel: "4.8 Acres", towers: "4", floors: "G+22",
+    reraPossession: "Jun 2026",
+    nearby: NEARBY_AUNDH,
+    bhkConfigs: [
+      { config: "3 BHK", area: "1,450 sqft", from: "Starts ₹2.1 Cr" },
+      { config: "4 BHK", area: "2,400 sqft", from: "Starts ₹3.6 Cr" },
+    ],
+  }),
+
+  /* — Baner — */
+  P({
+    slug: "lodha-belmondo", name: "Lodha Belmondo Residences", builder: "Lodha Group",
+    localitySlug: "baner", localityArea: "Baner · Pune West", status: "under-construction",
+    bhkRange: "3, 4 BHK", bhkOptions: [3, 4], areaMin: "1,850 sqft min",
+    possessionLabel: "Possession Dec 2027", possessionYear: 2027,
+    priceDisplay: "₹ 2.85 Cr – 4.2 Cr", priceMin: 285, priceMax: 420,
+    thumbnail: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100118011",
+    nearby: NEARBY_BANER,
+    bhkConfigs: [
+      { config: "3 BHK", area: "1,850 sqft", from: "Starts ₹2.85 Cr" },
+      { config: "4 BHK", area: "3,200 sqft", from: "Starts ₹4.2 Cr" },
+    ],
+  }),
+  P({
+    slug: "godrej-splendour", name: "Godrej Splendour Park", builder: "Godrej Properties",
+    localitySlug: "baner", localityArea: "Baner · Pune West", status: "ready",
+    bhkRange: "2, 3 BHK", bhkOptions: [2, 3], areaMin: "950 sqft min",
+    possessionLabel: "Ready to Move", possessionYear: 2024,
+    priceDisplay: "₹ 1.15 Cr – 1.8 Cr", priceMin: 115, priceMax: 180,
+    thumbnail: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100120033",
+    reraPossession: "Ready",
+    nearby: NEARBY_BANER,
+    bhkConfigs: [
+      { config: "2 BHK", area: "950 sqft", from: "Starts ₹1.15 Cr" },
+      { config: "3 BHK", area: "1,480 sqft", from: "Starts ₹1.65 Cr" },
+    ],
+  }),
+  P({
+    slug: "mahindra-citadel-baner", name: "Mahindra Citadel", builder: "Mahindra Lifespaces",
+    localitySlug: "baner", localityArea: "Baner · Pune West", status: "under-construction",
+    bhkRange: "2, 3 BHK", bhkOptions: [2, 3], areaMin: "1,020 sqft min",
+    areaRange: "1,020 – 1,580 sqft",
+    possessionLabel: "Possession Mar 2027", possessionYear: 2027,
+    priceDisplay: "₹ 1.35 Cr – 2.1 Cr", priceMin: 135, priceMax: 210,
+    thumbnail: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100120544",
+    totalUnits: 320,
+    landParcel: "5.6 Acres", towers: "5", floors: "G+24",
+    reraPossession: "Mar 2027",
+    nearby: NEARBY_BANER,
+    bhkConfigs: [
+      { config: "2 BHK", area: "1,020 sqft", from: "Starts ₹1.35 Cr" },
+      { config: "3 BHK", area: "1,580 sqft", from: "Starts ₹2.1 Cr" },
+    ],
+  }),
+  P({
+    slug: "vtp-altair-baner", name: "VTP Altair", builder: "VTP Realty",
+    localitySlug: "baner", localityArea: "Baner · Pune West", status: "ready",
+    bhkRange: "3, 4 BHK", bhkOptions: [3, 4], areaMin: "1,620 sqft min",
+    areaRange: "1,620 – 2,800 sqft",
+    possessionLabel: "Ready to Move", possessionYear: 2024,
+    priceDisplay: "₹ 2.4 Cr – 4.5 Cr", priceMin: 240, priceMax: 450,
+    thumbnail: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100119922",
+    totalUnits: 168,
+    landParcel: "3.8 Acres", towers: "2", floors: "G+30",
+    reraPossession: "Ready",
+    nearby: NEARBY_BANER,
+    bhkConfigs: [
+      { config: "3 BHK", area: "1,620 sqft", from: "Starts ₹2.4 Cr" },
+      { config: "4 BHK", area: "2,800 sqft", from: "Starts ₹4.5 Cr" },
+    ],
+  }),
+
+  /* — Hinjwadi — */
   P({
     slug: "kolte-patil-itowers",
     name: "Kolte Patil iTowers",
@@ -288,32 +423,47 @@ export const properties: Property[] = [
       { config: "2 BHK", area: "880 sqft", from: "Starts ₹78 L" },
     ],
   }),
+
+  /* — Kharadi — */
   P({
-    slug: "lodha-belmondo", name: "Lodha Belmondo Residences", builder: "Lodha Group",
-    localitySlug: "baner", localityArea: "Baner · Pune West", status: "under-construction",
-    bhkRange: "3, 4 BHK", bhkOptions: [3, 4], areaMin: "1,850 sqft min",
-    possessionLabel: "Possession Dec 2027", possessionYear: 2027,
-    priceDisplay: "₹ 2.85 Cr – 4.2 Cr", priceMin: 285, priceMax: 420,
-    thumbnail: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=900&q=80",
-    rera: "P52100118011",
-    bhkConfigs: [
-      { config: "3 BHK", area: "1,850 sqft", from: "Starts ₹2.85 Cr" },
-      { config: "4 BHK", area: "3,200 sqft", from: "Starts ₹4.2 Cr" },
-    ],
-  }),
-  P({
-    slug: "godrej-splendour", name: "Godrej Splendour Park", builder: "Godrej Properties",
-    localitySlug: "baner", localityArea: "Baner · Pune West", status: "ready",
-    bhkRange: "2, 3 BHK", bhkOptions: [2, 3], areaMin: "950 sqft min",
+    slug: "godrej-river-greens-kharadi", name: "Godrej River Greens", builder: "Godrej Properties",
+    localitySlug: "kharadi", localityArea: "Kharadi, Pune East", status: "ready",
+    bhkRange: "2, 3 BHK", bhkOptions: [2, 3], areaMin: "880 sqft min",
+    areaRange: "880 – 1,420 sqft",
     possessionLabel: "Ready to Move", possessionYear: 2024,
-    priceDisplay: "₹ 1.15 Cr – 1.8 Cr", priceMin: 115, priceMax: 180,
-    thumbnail: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=900&q=80",
-    rera: "P52100120033",
+    priceDisplay: "₹ 85 L – 1.5 Cr", priceMin: 85, priceMax: 150,
+    thumbnail: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100127001",
+    totalUnits: 380,
+    landParcel: "6.2 Acres", towers: "5", floors: "G+22",
+    reraPossession: "Ready",
+    nearby: NEARBY_KHARADI,
     bhkConfigs: [
-      { config: "2 BHK", area: "950 sqft", from: "Starts ₹1.15 Cr" },
-      { config: "3 BHK", area: "1,480 sqft", from: "Starts ₹1.65 Cr" },
+      { config: "2 BHK", area: "880 sqft", from: "Starts ₹85 L" },
+      { config: "3 BHK", area: "1,420 sqft", from: "Starts ₹1.35 Cr" },
     ],
   }),
+  P({
+    slug: "kolte-patil-life-republic", name: "Kolte Patil Life Republic", builder: "Kolte Patil",
+    localitySlug: "kharadi", localityArea: "Kharadi, Pune East", status: "under-construction",
+    bhkRange: "2, 3, 4 BHK", bhkOptions: [2, 3, 4], areaMin: "980 sqft min",
+    areaRange: "980 – 2,150 sqft",
+    possessionLabel: "Possession Sep 2026", possessionYear: 2026,
+    priceDisplay: "₹ 1.05 Cr – 2.4 Cr", priceMin: 105, priceMax: 240,
+    thumbnail: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100127544",
+    totalUnits: 460,
+    landParcel: "7.5 Acres", towers: "6", floors: "G+28",
+    reraPossession: "Sep 2026",
+    nearby: NEARBY_KHARADI,
+    bhkConfigs: [
+      { config: "2 BHK", area: "980 sqft", from: "Starts ₹1.05 Cr" },
+      { config: "3 BHK", area: "1,480 sqft", from: "Starts ₹1.55 Cr" },
+      { config: "4 BHK", area: "2,150 sqft", from: "Starts ₹2.4 Cr" },
+    ],
+  }),
+
+  /* — Koregaon Park — */
   P({
     slug: "kolte-patil-24k-allure", name: "Kolte Patil 24K Allure", builder: "Kolte Patil",
     localitySlug: "koregaon", localityArea: "Koregaon Park · Pune East", status: "under-construction",
@@ -325,6 +475,45 @@ export const properties: Property[] = [
     bhkConfigs: [
       { config: "4 BHK", area: "3,400 sqft", from: "Starts ₹4.95 Cr" },
       { config: "5 BHK", area: "4,800 sqft", from: "Starts ₹7.2 Cr" },
+    ],
+  }),
+
+  /* — Wakad — */
+  P({
+    slug: "rohan-abhilasha-wakad", name: "Rohan Abhilasha", builder: "Rohan Builders",
+    localitySlug: "wakad", localityArea: "Wakad, Pune", status: "ready",
+    bhkRange: "2, 3 BHK", bhkOptions: [2, 3], areaMin: "780 sqft min",
+    areaRange: "780 – 1,280 sqft",
+    possessionLabel: "Ready to Move", possessionYear: 2024,
+    priceDisplay: "₹ 70 L – 1.25 Cr", priceMin: 70, priceMax: 125,
+    thumbnail: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100129011",
+    totalUnits: 290,
+    landParcel: "4.2 Acres", towers: "4", floors: "G+20",
+    reraPossession: "Ready",
+    nearby: NEARBY_WAKAD,
+    bhkConfigs: [
+      { config: "2 BHK", area: "780 sqft", from: "Starts ₹70 L" },
+      { config: "3 BHK", area: "1,280 sqft", from: "Starts ₹1.1 Cr" },
+    ],
+  }),
+  P({
+    slug: "pride-world-city-wakad", name: "Pride World City", builder: "Pride Purple",
+    localitySlug: "wakad", localityArea: "Wakad, Pune", status: "under-construction",
+    bhkRange: "1, 2, 3 BHK", bhkOptions: [1, 2, 3], areaMin: "550 sqft min",
+    areaRange: "550 – 1,420 sqft",
+    possessionLabel: "Possession Dec 2026", possessionYear: 2026,
+    priceDisplay: "₹ 48 L – 1.4 Cr", priceMin: 48, priceMax: 140,
+    thumbnail: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100129560",
+    totalUnits: 540,
+    landParcel: "8.5 Acres", towers: "7", floors: "G+24",
+    reraPossession: "Dec 2026",
+    nearby: NEARBY_WAKAD,
+    bhkConfigs: [
+      { config: "1 BHK", area: "550 sqft", from: "Starts ₹48 L" },
+      { config: "2 BHK", area: "920 sqft", from: "Starts ₹85 L" },
+      { config: "3 BHK", area: "1,420 sqft", from: "Starts ₹1.4 Cr" },
     ],
   }),
 ];
@@ -353,7 +542,6 @@ export type Builder = {
   happyFamilies: string;
   locations: string[];
   about: string;
-  // Wordmark settings — used because external builder logos often 404
   wordmark: { text: string; tagline: string; color?: string };
 };
 

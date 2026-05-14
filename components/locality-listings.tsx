@@ -73,13 +73,18 @@ export default function LocalityListings({
     };
   }, []);
 
-  // Lock body scroll when a wide pill (budget) is open on mobile
+  // Lock body scroll AND add a "sheet-open" class on body when any pill is open on mobile.
+  // The class lets WhatsApp float (and any other floating element) respond by hiding.
   useEffect(() => {
-    if (openPill === "budget" && typeof window !== "undefined" && window.innerWidth < 640) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => { document.body.style.overflow = prev; };
-    }
+    if (typeof window === "undefined" || window.innerWidth >= 640) return;
+    if (!openPill) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("sheet-open");
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.classList.remove("sheet-open");
+    };
   }, [openPill]);
 
   const togglePill = useCallback((id: string) => {
@@ -107,7 +112,6 @@ export default function LocalityListings({
 
   return (
     <div className="container-x py-6 sm:py-8 lg:py-10">
-      {/* Count + view toggle */}
       <div className="flex items-center justify-between flex-wrap gap-3 mb-4 sm:mb-5">
         <div className="meta text-slate">
           <strong className="text-navy font-semibold">{filtered.length}</strong> propert
@@ -126,10 +130,8 @@ export default function LocalityListings({
         </div>
       </div>
 
-      {/* Filters row — horizontal scroll on mobile */}
       <div ref={filterBarRef} className="mb-6 sm:mb-7">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4">
-          {/* Pills — scroll horizontally on mobile, wrap on desktop */}
           <div className="flex items-center gap-2 overflow-x-auto -mx-3 px-3 pb-1 lg:pb-0 lg:overflow-visible lg:flex-wrap lg:mx-0 lg:px-0 no-scrollbar">
             <span className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-pill bg-navy text-white text-[12px] sm:text-[13px] font-semibold shrink-0">
               1 locality
@@ -182,7 +184,6 @@ export default function LocalityListings({
             </Pill>
           </div>
 
-          {/* Sort — full-width row on mobile, inline on desktop */}
           <div className="flex items-center gap-2 lg:shrink-0">
             <span className="meta text-slate shrink-0">Sort</span>
             <select
@@ -198,7 +199,6 @@ export default function LocalityListings({
         </div>
       </div>
 
-      {/* Results */}
       {view === "grid" ? (
         filtered.length === 0 ? (
           <EmptyState />
@@ -219,9 +219,18 @@ export default function LocalityListings({
         </button>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Hide any element marked as a floating CTA while a bottom sheet is open */
+        body.sheet-open [data-whatsapp-float],
+        body.sheet-open .whatsapp-float {
+          opacity: 0;
+          pointer-events: none;
+          transform: translateY(20px);
+          transition: opacity 0.25s ease, transform 0.25s ease;
+        }
       `}</style>
     </div>
   );
@@ -261,7 +270,6 @@ function Pill({
           <span className={"text-slate transition-transform duration-200 " + (isOpen ? "rotate-180" : "")} aria-hidden>&#9662;</span>
         </button>
 
-        {/* Desktop popup — anchored to button */}
         {isOpen && (
           <div className={"hidden sm:block absolute top-full left-0 mt-2 bg-white border border-navy/10 rounded-card shadow-card z-30 " + (wide ? "min-w-[380px] sm:min-w-[420px] p-4" : "min-w-[200px] p-1.5")}>
             {children}
@@ -269,17 +277,14 @@ function Pill({
         )}
       </div>
 
-      {/* Mobile popup — bottom sheet style, full-width */}
       {isOpen && (
         <div className="sm:hidden">
-          {/* Backdrop */}
           <div
             onClick={() => togglePill(id)}
             aria-hidden
-            className="fixed inset-0 z-40 bg-navy/40 backdrop-blur-sm animate-fade-in"
+            className="fixed inset-0 z-[80] bg-navy/40 backdrop-blur-sm animate-fade-in"
           />
-          {/* Sheet */}
-          <div className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-[24px] shadow-[0_-12px_40px_hsl(var(--navy)/0.20)] animate-slide-up max-h-[85vh] flex flex-col">
+          <div className="fixed inset-x-0 bottom-0 z-[90] bg-white rounded-t-[24px] shadow-[0_-12px_40px_hsl(var(--navy)/0.20)] animate-slide-up max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-navy/8 shrink-0">
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-gold-hover mb-0.5">Filter</div>

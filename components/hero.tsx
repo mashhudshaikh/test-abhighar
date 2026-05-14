@@ -35,6 +35,20 @@ const PRICE_TICKS = [
   { value: 1000, label: "10 Cr+", major: true },
 ];
 
+// Property type → 4th field (label + options) mapping
+type PropertyTypeKey = "Apartment" | "Villa" | "Duplex" | "Plot" | "Studio" | "Commercial";
+
+const PROPERTY_TYPE_OPTIONS: PropertyTypeKey[] = ["Apartment", "Villa", "Duplex", "Plot", "Studio", "Commercial"];
+
+const PROPERTY_TYPE_CONFIG: Record<PropertyTypeKey, { label: string; options: string[] }> = {
+  Apartment:  { label: "BHK",        options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
+  Villa:      { label: "BHK",        options: ["2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
+  Duplex:     { label: "BHK",        options: ["3 BHK", "4 BHK", "5 BHK", "6+ BHK"] },
+  Plot:       { label: "Listing",    options: ["Buy", "Lease"] },
+  Studio:     { label: "Config",     options: ["1 RK"] },
+  Commercial: { label: "Space Type", options: ["Showroom", "Shop", "Office Space", "Lease"] },
+};
+
 function formatPrice(lakhs: number): string {
   if (lakhs >= PRICE_MAX_BOUND) return "10 Cr+";
   if (lakhs >= 100) {
@@ -50,11 +64,11 @@ export default function Hero() {
   const { scrollY } = useScroll();
 
   const [slide, setSlide] = useState(0);
-  const [propertyType, setPropertyType] = useState("Apartment");
+  const [propertyType, setPropertyType] = useState<PropertyTypeKey>("Apartment");
   const [locality, setLocality] = useState("Hinjewadi");
   const [priceMin, setPriceMin] = useState(PRICE_MIN_BOUND);
   const [priceMax, setPriceMax] = useState(PRICE_MAX_BOUND);
-  const [bhk, setBhk] = useState("2 BHK");
+  const [typeSubChoice, setTypeSubChoice] = useState<string>(PROPERTY_TYPE_CONFIG.Apartment.options[1]); // "2 BHK"
   const [possession, setPossession] = useState("Ready to Move");
   const [openField, setOpenField] = useState<string | null>(null);
 
@@ -81,6 +95,17 @@ export default function Hero() {
     };
   }, []);
 
+  // When property type changes, reset the sub-choice to a sensible default for that type
+  const handlePropertyTypeChange = (next: string) => {
+    const nextKey = next as PropertyTypeKey;
+    setPropertyType(nextKey);
+    const config = PROPERTY_TYPE_CONFIG[nextKey];
+    if (!config) return;
+    // Pick "2 BHK" if available (familiar default for apartments/villas), else first option
+    const preferred = config.options.find((o) => o === "2 BHK") ?? config.options[0];
+    setTypeSubChoice(preferred);
+  };
+
   function handleSearch() {
     const slug = locality.toLowerCase().replace(/\s+/g, "").replace("park", "");
     router.push("/localities/" + slug);
@@ -90,6 +115,8 @@ export default function Hero() {
     priceMin === PRICE_MIN_BOUND && priceMax >= PRICE_MAX_BOUND
       ? "Any budget"
       : formatPrice(priceMin) + " – " + formatPrice(priceMax);
+
+  const currentTypeConfig = PROPERTY_TYPE_CONFIG[propertyType];
 
   const sSpring = { damping: 25, stiffness: 100, mass: 0.5 };
   const photoY = useSpring(useTransform(scrollY, [0, 900], [0, 240]), sSpring);
@@ -178,8 +205,8 @@ export default function Hero() {
             >
               <div className="flex flex-col lg:flex-row items-stretch bg-ivory rounded-[22px] sm:rounded-[28px] overflow-visible">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-1 lg:items-stretch">
-                  <SearchField id="propertyType" label="Property Type" value={propertyType} onChange={setPropertyType} options={["Apartment", "Villa", "Plot", "Commercial"]} openField={openField} setOpenField={setOpenField} />
-                  <SearchField id="locality" label="Locality" value={locality} onChange={setLocality} options={["Hinjewadi", "Baner", "Kharadi", "Wakad", "Aundh", "Koregaon Park"]} openField={openField} setOpenField={setOpenField} />
+                  <SearchField id="propertyType" label="Property Type" value={propertyType} onChange={handlePropertyTypeChange} options={PROPERTY_TYPE_OPTIONS as unknown as string[]} openField={openField} setOpenField={setOpenField} />
+                  <SearchField id="locality" label="Locality" value={locality} onChange={setLocality} options={["Aundh", "Baner", "Hinjewadi", "Kharadi", "Koregaon Park", "Wakad"]} openField={openField} setOpenField={setOpenField} />
 
                   <BudgetField
                     id="budget"
@@ -192,8 +219,18 @@ export default function Hero() {
                     setOpenField={setOpenField}
                   />
 
-                  <SearchField id="bhk" label="BHK" value={bhk} onChange={setBhk} options={["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"]} openField={openField} setOpenField={setOpenField} />
-                  <SearchField id="possession" label="Possession" value={possession} onChange={setPossession} options={["Ready to Move", "Within 1 Year", "1 – 3 Years", "Under Construction"]} openField={openField} setOpenField={setOpenField} last />
+                  {/* Dynamic 4th field — label + options change based on property type */}
+                  <SearchField
+                    id="typeSubChoice"
+                    label={currentTypeConfig.label}
+                    value={typeSubChoice}
+                    onChange={setTypeSubChoice}
+                    options={currentTypeConfig.options}
+                    openField={openField}
+                    setOpenField={setOpenField}
+                  />
+
+                  <SearchField id="possession" label="Possession" value={possession} onChange={setPossession} options={["New Launch", "Under Construction", "Nearing Possession", "Ready to Move"]} openField={openField} setOpenField={setOpenField} last />
                 </div>
 
                 <div className="flex items-center justify-center p-2 lg:p-2">
@@ -220,7 +257,7 @@ export default function Hero() {
               { num: 340, sup: "+", label: "Curated Homes" },
               { num: 28, sup: "", label: "Pune Localities" },
               { num: 200, sup: "+", label: "Happy Families" },
-              { num: 7, sup: "yrs", label: "Of Trust" },
+              { num: 6, sup: "+ yrs", label: "Of Trust" },
             ].map((s, i) => (
               <div key={i} className="flex flex-col items-center gap-1">
                 <span className="font-sans font-semibold text-[26px] sm:text-[32px] tnum leading-none text-white">
@@ -237,7 +274,6 @@ export default function Hero() {
   );
 }
 
-/* — Field with chevron + dropdown panel of options — */
 function SearchField({
   id,
   label,
@@ -313,7 +349,6 @@ function SearchField({
   );
 }
 
-/* — Budget field with dual-handle slider — */
 function BudgetField({
   id,
   label,
@@ -383,7 +418,6 @@ function BudgetField({
   );
 }
 
-/* — Dual-handle range slider with tick marks — */
 function RangeSlider({
   min,
   max,
@@ -432,32 +466,25 @@ function RangeSlider({
 
       <div className="relative mx-3 pb-8">
         <div className="relative h-6 flex items-center">
-          {/* 1. Track background bar */}
           <div className="absolute left-0 right-0 h-1.5 rounded-full bg-gold-light pointer-events-none z-[1]" />
-
-          {/* 2. Active range fill */}
           <div
             className="absolute h-1.5 rounded-full bg-gold pointer-events-none z-[2]"
             style={{ left: pctMin + "%", right: (100 - pctMax) + "%" }}
           />
-
-          {/* 3. Tick marks */}
           {ticks && ticks.map((t) => {
             const pct = pctOf(t.value);
             const inRange = t.value >= valueMin && t.value <= valueMax;
             return (
               <span
                 key={"tick-" + t.value}
-                className={"absolute -translate-x-1/2 w-px rounded-full pointer-events-none z-[3] " + 
-                  (t.major ? "h-3" : "h-2") + " " + 
+                className={"absolute -translate-x-1/2 w-px rounded-full pointer-events-none z-[3] " +
+                  (t.major ? "h-3" : "h-2") + " " +
                   (inRange ? "bg-gold" : "bg-navy/25")}
                 style={{ left: pct + "%" }}
                 aria-hidden
               />
             );
           })}
-
-          {/* 4. Range inputs - z-index is higher to ensure handles are clickable and above visual lines */}
           <input
             type="range"
             min={min}
@@ -480,7 +507,6 @@ function RangeSlider({
           />
         </div>
 
-        {/* Labels below */}
         {ticks && (
           <div className="absolute left-0 right-0 top-full mt-2 h-5">
             {ticks.filter((t) => t.major).map((t) => {
@@ -513,7 +539,6 @@ function RangeSlider({
           height: 24px;
           z-index: 20;
         }
-        
         .range-input-hero::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
@@ -525,14 +550,12 @@ function RangeSlider({
           box-shadow: 0 4px 12px hsl(var(--gold) / 0.45);
           cursor: pointer;
           pointer-events: auto;
-          margin-top: 0px; 
+          margin-top: 0;
           transition: transform 0.1s ease;
           position: relative;
           z-index: 30;
         }
-
         .range-input-hero::-webkit-slider-thumb:hover { transform: scale(1.1); }
-
         .range-input-hero::-moz-range-thumb {
           width: 22px;
           height: 22px;
@@ -542,19 +565,13 @@ function RangeSlider({
           box-shadow: 0 4px 12px hsl(var(--gold) / 0.45);
           cursor: pointer;
           pointer-events: auto;
-          border: none;
           z-index: 30;
         }
-
         .range-input-hero::-webkit-slider-runnable-track {
           background: transparent;
           height: 24px;
         }
-        
-        /* Ensure the second handle (Max) is clickable when handles overlap */
-        .range-input-hero:last-of-type {
-          z-index: 21;
-        }
+        .range-input-hero:last-of-type { z-index: 21; }
       `}</style>
     </div>
   );

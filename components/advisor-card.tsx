@@ -22,7 +22,16 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
     e.preventDefault();
     if (!name.trim() || phone.length !== 10) return;
     setSent(true);
-    setTimeout(() => setSent(false), 4000);
+
+    try {
+      const slug = (p as Property & { slug?: string }).slug;
+      if (slug) sessionStorage.setItem("lead:" + slug, "1");
+      if (variant === "interior") sessionStorage.setItem("lead:interiors", "1");
+    } catch { /* sessionStorage may be unavailable */ }
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("lead-unlock"));
+    }
   }
 
   const heading = variant === "interior" ? "Get a free design quote" : "Get the best price";
@@ -48,7 +57,7 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
     : "e.g. corner unit availability, possession, EMI options";
 
   return (
-    <aside className="bg-navy text-white rounded-card p-6 lg:sticky lg:top-28">
+    <aside className="bg-navy text-white rounded-card p-6">
       <div className="flex items-center gap-3 pb-5 mb-6 border-b border-white/10">
         <div className="w-11 h-11 rounded-full bg-gold text-white grid place-items-center font-sans font-bold text-[14px] shrink-0">{advisor.initials}</div>
         <div>
@@ -67,9 +76,14 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
 
       {sent ? (
         <div className="rounded-panel bg-success/20 border border-success/40 p-5 text-center">
-          <div className="text-success text-2xl mb-1">&check;</div>
-          <div className="font-sans font-semibold text-[15px] mb-1">Got it, {name.split(" ")[0] || "friend"}!</div>
-          <div className="meta text-white/70">{advisor.name} will reach out within 30 minutes.</div>
+          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-success/30 grid place-items-center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-success" aria-hidden>
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div className="font-sans font-bold text-[17px] mb-1.5">Got it, {name.split(" ")[0] || "friend"}!</div>
+          <div className="meta text-white/80 mb-1">{advisor.name} will reach out within 30 minutes.</div>
+          <div className="meta text-gold font-semibold">&check; Full details unlocked below</div>
         </div>
       ) : (
         <form onSubmit={submit} className="flex flex-col gap-4">
@@ -128,8 +142,6 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
           </Field>
 
           <button type="submit" className="mt-2 h-12 rounded-pill bg-gold text-white font-sans font-semibold shadow-cta hover:bg-gold-hover transition-colors">{primaryCTA}</button>
-          <button type="button" className="h-12 rounded-pill border border-gold text-gold font-sans font-semibold hover:bg-gold hover:text-white transition-colors">Get a Callback in 30 min</button>
-          <a href="#brochure" className="text-center text-gold underline meta font-semibold hover:text-gold-hover">Just send me the brochure</a>
 
           <div className="mt-3 pt-4 border-t border-white/10 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 meta text-white/55 text-center">
             <span className="inline-flex items-center gap-1.5"><span aria-hidden>&#128293;</span> 12 enquiries today</span>

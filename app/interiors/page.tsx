@@ -2,16 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import WhatsAppFloat from "@/components/whatsapp-float";
-import MagneticButton from "@/components/ui/magnetic-button";
 import Reveal from "@/components/ui/reveal";
 import { interiorCategories, Property } from "@/lib/data";
-import ProjectFeedbackForm from "@/components/project-feedback-form";
 import LeadGate from "@/components/lead-gate";
 import AdvisorCard from "@/components/advisor-card";
+import AdvisorModal from "@/components/advisor-modal";
 
 const INTERIORS_ADVISOR_DATA = {
   advisor: {
@@ -33,31 +32,15 @@ type Pkg = {
 };
 
 const PACKAGES: Pkg[] = [
-  {
-    slug: "essentials",
-    name: "Essentials",
-    tagline: "Perfect for compact homes",
-    price: "₹1,99,000",
+  { slug: "essentials", name: "Essentials", tagline: "Perfect for compact homes", price: "₹1,99,000",
     image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=900&q=80",
-    features: ["Modular Kitchen", "Wardrobes in 1 Bedroom", "Basic False Ceiling", "2D Design & Consultation"],
-  },
-  {
-    slug: "premium",
-    name: "Premium",
-    tagline: "Perfect blend of style & comfort",
-    price: "₹3,49,000",
-    popular: true,
+    features: ["Modular Kitchen", "Wardrobes in 1 Bedroom", "Basic False Ceiling", "2D Design & Consultation"] },
+  { slug: "premium", name: "Premium", tagline: "Perfect blend of style & comfort", price: "₹3,49,000", popular: true,
     image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=900&q=80",
-    features: ["Modular Kitchen", "Wardrobes in 2 Bedrooms", "False Ceiling with Lights", "3D Design & Consultation", "Premium Materials"],
-  },
-  {
-    slug: "luxury",
-    name: "Luxury",
-    tagline: "For a luxurious living experience",
-    price: "₹5,99,000",
+    features: ["Modular Kitchen", "Wardrobes in 2 Bedrooms", "False Ceiling with Lights", "3D Design & Consultation", "Premium Materials"] },
+  { slug: "luxury", name: "Luxury", tagline: "For a luxurious living experience", price: "₹5,99,000",
     image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=900&q=80",
-    features: ["Modular Kitchen (Premium)", "Wardrobes in All Bedrooms", "Designer False Ceiling", "3D Design & Consultation", "Premium Materials & Decor"],
-  },
+    features: ["Modular Kitchen (Premium)", "Wardrobes in All Bedrooms", "Designer False Ceiling", "3D Design & Consultation", "Premium Materials & Decor"] },
 ];
 
 const PORTFOLIO = [
@@ -95,23 +78,23 @@ const FAQS = [
 ];
 
 export default function InteriorsPage() {
-  const formRef = useRef<HTMLDivElement>(null);
   const [selectedPackage, setSelectedPackage] = useState<Pkg["slug"]>("premium");
-  const scrollToForm = () => formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  const [modalOpen, setModalOpen] = useState(false);
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
 
   return (
     <>
       <Header />
       <main className="pt-[100px] lg:pt-[110px]">
-        <Hero scrollToForm={scrollToForm} />
+        <Hero openModal={openModal} />
 
-        {/* Two-column rail with sticky advisor */}
         <div className="container-x">
           <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-8">
             <div className="min-w-0">
               <Services />
-              <Packages selectedPackage={selectedPackage} setSelectedPackage={setSelectedPackage} scrollToForm={scrollToForm} />
-              <Portfolio scrollToForm={scrollToForm} />
+              <Packages selectedPackage={selectedPackage} setSelectedPackage={setSelectedPackage} openModal={openModal} />
+              <Portfolio openModal={openModal} />
               <Process />
               <FAQ />
             </div>
@@ -128,17 +111,16 @@ export default function InteriorsPage() {
         <div className="lg:hidden container-x py-8">
           <AdvisorCard property={INTERIORS_ADVISOR_DATA} variant="interior" />
         </div>
-
-        <FinalCTAWithForm formRef={formRef} />
       </main>
       <Footer />
       <WhatsAppFloat />
+
+      <AdvisorModal open={modalOpen} onClose={closeModal} property={INTERIORS_ADVISOR_DATA} variant="interior" />
     </>
   );
 }
 
-/* — Hero — */
-function Hero({ scrollToForm }: { scrollToForm: () => void }) {
+function Hero({ openModal }: { openModal: () => void }) {
   return (
     <section className="container-x pt-6 pb-12 lg:pb-16">
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -168,7 +150,7 @@ function Hero({ scrollToForm }: { scrollToForm: () => void }) {
             ))}
           </div>
           <div className="flex flex-wrap gap-3">
-            <button type="button" onClick={scrollToForm} className="btn-primary inline-flex items-center gap-2">
+            <button type="button" onClick={openModal} className="btn-primary inline-flex items-center gap-2">
               Book Free Consultation <span aria-hidden>&rarr;</span>
             </button>
             <Link href="#portfolio" className="inline-flex items-center gap-2 h-12 px-6 rounded-btn border border-navy/15 text-navy font-sans font-semibold text-sm hover:border-gold hover:text-gold-hover transition-colors">
@@ -200,7 +182,6 @@ function Hero({ scrollToForm }: { scrollToForm: () => void }) {
   );
 }
 
-/* — Services strip — */
 function Services() {
   const all = [
     { slug: "modular-kitchen", name: "Modular Kitchen", icon: "kitchen" },
@@ -229,15 +210,14 @@ function Services() {
   );
 }
 
-/* — Packages + cost calculator — */
 function Packages({
   selectedPackage,
   setSelectedPackage,
-  scrollToForm,
+  openModal,
 }: {
   selectedPackage: Pkg["slug"];
   setSelectedPackage: (slug: Pkg["slug"]) => void;
-  scrollToForm: () => void;
+  openModal: () => void;
 }) {
   const [propertyType, setPropertyType] = useState("2 BHK");
   const [carpetArea, setCarpetArea] = useState("800 - 1000");
@@ -265,7 +245,6 @@ function Packages({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5 mb-8">
         {PACKAGES.map((pkg, i) => {
           const isSelected = selectedPackage === pkg.slug;
-
           const cardCls = [
             "relative h-full overflow-hidden flex flex-col scroll-mt-[120px]",
             "card-base cursor-pointer text-left",
@@ -276,13 +255,7 @@ function Packages({
 
           return (
             <Reveal key={pkg.slug} delay={i * 0.08} className="h-full">
-              <button
-                type="button"
-                id={pkg.slug}
-                onClick={() => setSelectedPackage(pkg.slug)}
-                aria-pressed={isSelected}
-                className={cardCls}
-              >
+              <button type="button" id={pkg.slug} onClick={() => setSelectedPackage(pkg.slug)} aria-pressed={isSelected} className={cardCls}>
                 {pkg.popular && (
                   <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-pill bg-success text-white text-[10px] font-bold uppercase tracking-wider">Most Popular</span>
                 )}
@@ -312,15 +285,7 @@ function Packages({
                     ))}
                   </ul>
 
-                  <div
-                    role="button"
-                    tabIndex={-1}
-                    onClick={(e) => { e.stopPropagation(); scrollToForm(); }}
-                    className={
-                      "h-11 rounded-btn font-sans font-semibold text-sm grid place-items-center transition-colors " +
-                      (isSelected ? "bg-gold text-white hover:bg-gold-hover" : "border border-navy/15 text-navy hover:border-gold hover:text-gold-hover hover:bg-gold/5")
-                    }
-                  >
+                  <div role="button" tabIndex={-1} onClick={(e) => { e.stopPropagation(); openModal(); }} className={"h-11 rounded-btn font-sans font-semibold text-sm grid place-items-center transition-colors " + (isSelected ? "bg-gold text-white hover:bg-gold-hover" : "border border-navy/15 text-navy hover:border-gold hover:text-gold-hover hover:bg-gold/5")}>
                     {isSelected ? "Get this package →" : "Select & View"}
                   </div>
                 </div>
@@ -331,7 +296,7 @@ function Packages({
       </div>
 
       <Reveal delay={0.16}>
-        <LeadGate storageKey="lead:interiors" prompt="Cost estimate after a quick intro" onUnlockClick={scrollToForm}>
+        <LeadGate storageKey="lead:interiors" prompt="Cost estimate after a quick intro" onUnlockClick={openModal}>
           <aside className="card-base p-5 lg:p-6">
             <h3 className="font-sans font-semibold text-[18px] text-navy text-center mb-5">
               Cost Calculator <span className="text-slate font-medium">&middot; {PACKAGES.find((p) => p.slug === selectedPackage)?.name}</span>
@@ -364,7 +329,7 @@ function Packages({
                 <div className="meta text-slate mt-0.5">*Approximate &mdash; final quote on consultation</div>
               </div>
 
-              <button type="button" onClick={scrollToForm} className="h-11 px-5 rounded-btn bg-gold text-white font-sans font-semibold text-sm hover:bg-gold-hover transition-colors whitespace-nowrap shadow-cta">
+              <button type="button" onClick={openModal} className="h-11 px-5 rounded-btn bg-gold text-white font-sans font-semibold text-sm hover:bg-gold-hover transition-colors whitespace-nowrap shadow-cta">
                 Get Free Quote
               </button>
             </div>
@@ -402,8 +367,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-/* — Portfolio — */
-function Portfolio({ scrollToForm }: { scrollToForm: () => void }) {
+function Portfolio({ openModal }: { openModal: () => void }) {
   const [filter, setFilter] = useState("all");
   const visible = filter === "all" ? PORTFOLIO : PORTFOLIO.filter((p) => p.category === filter);
 
@@ -424,7 +388,7 @@ function Portfolio({ scrollToForm }: { scrollToForm: () => void }) {
         })}
       </div>
 
-      <LeadGate storageKey="lead:interiors" prompt="Full portfolio after a quick intro" onUnlockClick={scrollToForm}>
+      <LeadGate storageKey="lead:interiors" prompt="Full portfolio after a quick intro" onUnlockClick={openModal}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {visible.map((p) => (
             <Reveal key={p.id} className="h-full">
@@ -448,7 +412,6 @@ function Portfolio({ scrollToForm }: { scrollToForm: () => void }) {
   );
 }
 
-/* — Process — */
 function Process() {
   return (
     <section className="py-10 lg:py-14">
@@ -471,7 +434,6 @@ function Process() {
   );
 }
 
-/* — FAQ — */
 function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
   return (
@@ -502,24 +464,6 @@ function FAQ() {
   );
 }
 
-/* — Final CTA — */
-function FinalCTAWithForm({ formRef }: { formRef: React.RefObject<HTMLDivElement> }) {
-  return (
-    <section ref={formRef} id="consultation" className="py-12 lg:py-16">
-      <div className="container-x max-w-[860px]">
-        <Reveal>
-          <ProjectFeedbackForm
-            propertySlug="interiors"
-            propertyName="your interior design project"
-            onUnlock={() => { window.dispatchEvent(new Event("lead-unlock")); }}
-          />
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
-/* — Icon set — */
 function Icon({ kind, className = "w-4 h-4" }: { kind: string; className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
@@ -529,35 +473,21 @@ function Icon({ kind, className = "w-4 h-4" }: { kind: string; className?: strin
 }
 
 const PATHS: Record<string, React.ReactNode> = {
-  kitchen: (
-    <>
-      <path d="M3 9h18M3 9v12h18V9M3 9V5h18v4" />
-      <path d="M7 14v3M11 14v3M15 14v3M19 14v3" />
-    </>
-  ),
-  sofa: (
-    <>
-      <path d="M3 14v-3a2 2 0 012-2h14a2 2 0 012 2v3" />
-      <path d="M2 14h20v5H2zM5 19v2M19 19v2" />
-    </>
-  ),
-  home: (
-    <>
-      <path d="M3 11l9-7 9 7v9a2 2 0 01-2 2h-4v-7H9v7H5a2 2 0 01-2-2z" />
-    </>
-  ),
-  bed: <><path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6" /><path d="M3 18h18M7 10V8a2 2 0 012-2h6a2 2 0 012 2v2" /></>,
-  wardrobe: <><rect x="5" y="3" width="14" height="18" rx="1" /><path d="M12 3v18M9 10v3M15 10v3" /></>,
-  ceiling: <><path d="M3 8h18M5 8v3M9 8v3M13 8v3M17 8v3M21 8v3" /><path d="M3 14h18M5 20h14" /></>,
-  bath: <><path d="M5 12V6a2 2 0 014 0v1" /><path d="M3 12h18l-1 7a2 2 0 01-2 2H6a2 2 0 01-2-2L3 12z" /></>,
-  door: <><rect x="6" y="3" width="12" height="18" rx="1" /><circle cx="14" cy="12" r="0.8" fill="currentColor" /></>,
-  desk: <><path d="M3 14h18M5 14v6M19 14v6" /><path d="M5 14V8h14v6M9 8V5h6v3" /></>,
-  pencil: <><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4z" /></>,
-  clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
-  rupee: <><path d="M7 5h10M7 9h10" /><path d="M7 5c0 5-3 6-3 6h2c5 0 6 4 6 9" /></>,
-  shield: <><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z" /><path d="M9 12l2 2 4-4" /></>,
-  check: <><path d="M5 12l5 5L20 7" /></>,
-  plus: <><path d="M12 5v14M5 12h14" /></>,
-  calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></>,
-  default: <circle cx="12" cy="12" r="3" />,
+  kitchen: (<><path d="M3 9h18M3 9v12h18V9M3 9V5h18v4" /><path d="M7 14v3M11 14v3M15 14v3M19 14v3" /></>),
+  sofa: (<><path d="M3 14v-3a2 2 0 012-2h14a2 2 0 012 2v3" /><path d="M2 14h20v5H2zM5 19v2M19 19v2" /></>),
+  home: (<><path d="M3 11l9-7 9 7v9a2 2 0 01-2 2h-4v-7H9v7H5a2 2 0 01-2-2z" /></>),
+  bed: (<><path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6" /><path d="M3 18h18M7 10V8a2 2 0 012-2h6a2 2 0 012 2v2" /></>),
+  wardrobe: (<><rect x="5" y="3" width="14" height="18" rx="1" /><path d="M12 3v18M9 10v3M15 10v3" /></>),
+  ceiling: (<><path d="M3 8h18M5 8v3M9 8v3M13 8v3M17 8v3M21 8v3" /><path d="M3 14h18M5 20h14" /></>),
+  bath: (<><path d="M5 12V6a2 2 0 014 0v1" /><path d="M3 12h18l-1 7a2 2 0 01-2 2H6a2 2 0 01-2-2L3 12z" /></>),
+  door: (<><rect x="6" y="3" width="12" height="18" rx="1" /><circle cx="14" cy="12" r="0.8" fill="currentColor" /></>),
+  desk: (<><path d="M3 14h18M5 14v6M19 14v6" /><path d="M5 14V8h14v6M9 8V5h6v3" /></>),
+  pencil: (<><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4z" /></>),
+  clock: (<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>),
+  rupee: (<><path d="M7 5h10M7 9h10" /><path d="M7 5c0 5-3 6-3 6h2c5 0 6 4 6 9" /></>),
+  shield: (<><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z" /><path d="M9 12l2 2 4-4" /></>),
+  check: (<><path d="M5 12l5 5L20 7" /></>),
+  plus: (<><path d="M12 5v14M5 12h14" /></>),
+  calendar: (<><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></>),
+  default: (<circle cx="12" cy="12" r="3" />),
 };
