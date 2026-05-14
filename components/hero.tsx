@@ -16,6 +16,34 @@ const SLIDES = [
 
 const SLIDE_DURATION = 6000;
 
+// Budget config — in ₹ Lakhs. 0 to 1000 = ₹10 Cr. Sentinel 1000 = "10 Cr+".
+const PRICE_MIN_BOUND = 0;
+const PRICE_MAX_BOUND = 1000;
+const PRICE_STEP = 10;
+
+const PRICE_TICKS = [
+  { value: 0,    label: "0",     major: true  },
+  { value: 100,  label: "₹1 Cr", major: false },
+  { value: 200,  label: "₹2 Cr", major: true  },
+  { value: 300,  label: "₹3 Cr", major: false },
+  { value: 400,  label: "₹4 Cr", major: true  },
+  { value: 500,  label: "₹5 Cr", major: false },
+  { value: 600,  label: "₹6 Cr", major: true  },
+  { value: 700,  label: "₹7 Cr", major: false },
+  { value: 800,  label: "₹8 Cr", major: true  },
+  { value: 900,  label: "₹9 Cr", major: false },
+  { value: 1000, label: "10 Cr+", major: true },
+];
+
+function formatPrice(lakhs: number): string {
+  if (lakhs >= PRICE_MAX_BOUND) return "10 Cr+";
+  if (lakhs >= 100) {
+    const cr = lakhs / 100;
+    return cr % 1 === 0 ? "₹" + cr + " Cr" : "₹" + cr.toFixed(2).replace(/\.?0+$/, "") + " Cr";
+  }
+  return "₹" + lakhs + " L";
+}
+
 export default function Hero() {
   const heroRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -24,19 +52,44 @@ export default function Hero() {
   const [slide, setSlide] = useState(0);
   const [propertyType, setPropertyType] = useState("Apartment");
   const [locality, setLocality] = useState("Hinjewadi");
-  const [budget, setBudget] = useState("₹50L – ₹1 Cr");
+  const [priceMin, setPriceMin] = useState(PRICE_MIN_BOUND);
+  const [priceMax, setPriceMax] = useState(PRICE_MAX_BOUND);
   const [bhk, setBhk] = useState("2 BHK");
   const [possession, setPossession] = useState("Ready to Move");
+  const [openField, setOpenField] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), SLIDE_DURATION);
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (!target.closest("[data-search-field]")) {
+        setOpenField(null);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpenField(null);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
   function handleSearch() {
     const slug = locality.toLowerCase().replace(/\s+/g, "").replace("park", "");
     router.push("/localities/" + slug);
   }
+
+  const budgetSummary =
+    priceMin === PRICE_MIN_BOUND && priceMax >= PRICE_MAX_BOUND
+      ? "Any budget"
+      : formatPrice(priceMin) + " – " + formatPrice(priceMax);
 
   const sSpring = { damping: 25, stiffness: 100, mass: 0.5 };
   const photoY = useSpring(useTransform(scrollY, [0, 900], [0, 240]), sSpring);
@@ -64,7 +117,7 @@ export default function Hero() {
   function handleMouseLeave() { mx.set(0); my.set(0); }
 
   return (
-    <section ref={heroRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className="relative isolate min-h-[600px] lg:min-h-[720px] overflow-hidden bg-navy text-white pt-24 lg:pt-32 pb-16 lg:pb-20">
+    <section ref={heroRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className="relative isolate min-h-[600px] lg:min-h-[720px] overflow-hidden bg-navy text-white pt-20 sm:pt-24 lg:pt-32 pb-16 lg:pb-20">
 
       <motion.div className="absolute inset-[-10%_-5%] z-0 will-change-transform" style={{ y: photoY, x: photoMx, scale: photoS }}>
         <motion.div className="relative w-full h-full" style={{ y: photoMy }}>
@@ -96,12 +149,14 @@ export default function Hero() {
 
       <motion.div className="relative z-[3] container-x text-center max-w-[1080px]" style={{ y: textY, x: textMx, opacity: textOp }}>
         <motion.div style={{ y: textMy }}>
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }} className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-pill bg-white/10 backdrop-blur-md border border-white/20 mb-7 shadow-lg">
-            <span className="relative w-1.5 h-1.5 rounded-full bg-gold">
-              <span className="absolute inset-0 rounded-full bg-gold animate-ping opacity-50" />
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }} className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-1.5 rounded-3xl sm:rounded-pill bg-white/10 backdrop-blur-md border border-white/20 mb-6 sm:mb-7 shadow-lg max-w-[95vw]">
+            <span className="inline-flex items-center gap-2">
+              <span className="relative w-1.5 h-1.5 rounded-full bg-gold">
+                <span className="absolute inset-0 rounded-full bg-gold animate-ping opacity-50" />
+              </span>
+              <span className="font-sans text-[12px] sm:text-[13px] font-medium text-white whitespace-nowrap">340+ curated homes</span>
             </span>
-            <span className="font-sans text-[13px] font-medium text-white">340+ curated homes across Pune</span>
-            <span className="ml-1 px-3 py-1 rounded-pill bg-gold text-white text-[11px] font-bold tracking-wider">RERA &middot; Verified</span>
+            <span className="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-pill bg-gold text-white text-[10px] sm:text-[11px] font-bold tracking-wider whitespace-nowrap">RERA &middot; Verified</span>
           </motion.div>
 
           <h1 className="h1-hero mb-6" style={{ textShadow: "0 2px 24px hsl(var(--navy) / 0.5)" }}>
@@ -114,43 +169,53 @@ export default function Hero() {
             From the IT corridors of Hinjewadi to the heritage lanes of Koregaon Park &mdash; we curate residences with the warmth of a friend and the rigour of an advisor.
           </motion.p>
 
-          {/* Search bar — refined premium card */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative max-w-[1080px] mx-auto text-left">
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-1.5 rounded-pill bg-gold text-white eyebrow text-[11.5px] shadow-cta whitespace-nowrap tracking-[0.14em]">Find Your Home</div>
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-pill bg-gold text-white eyebrow text-[11.5px] shadow-cta whitespace-nowrap tracking-[0.14em]">Find Your Home</div>
 
             <div
-              className="rounded-[36px] p-2 shadow-[0_30px_80px_hsl(var(--navy)/0.4)] border border-white/80"
+              className="rounded-[28px] sm:rounded-[36px] p-2 shadow-[0_30px_80px_hsl(var(--navy)/0.4)] border border-white/80"
               style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #FBF6EE 100%)" }}
             >
-              <div className="flex flex-col lg:flex-row items-stretch bg-ivory rounded-[28px] overflow-hidden">
-                <div className="grid grid-cols-2 lg:flex lg:flex-1 lg:items-stretch">
-                  <SearchField label="Property Type" value={propertyType} onChange={setPropertyType} options={["Apartment", "Villa", "Plot", "Commercial"]} />
-                  <SearchField label="Locality" value={locality} onChange={setLocality} options={["Hinjewadi", "Baner", "Kharadi", "Wakad", "Aundh", "Koregaon Park"]} />
-                  <SearchField label="Budget" value={budget} onChange={setBudget} options={["₹25L – ₹50L", "₹50L – ₹1 Cr", "₹1 – 2 Cr", "₹2 – 5 Cr", "₹5 Cr+"]} />
-                  <SearchField label="BHK" value={bhk} onChange={setBhk} options={["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"]} />
-                  <SearchField label="Possession" value={possession} onChange={setPossession} options={["Ready to Move", "Within 1 Year", "1 – 3 Years", "Under Construction"]} last />
+              <div className="flex flex-col lg:flex-row items-stretch bg-ivory rounded-[22px] sm:rounded-[28px] overflow-visible">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-1 lg:items-stretch">
+                  <SearchField id="propertyType" label="Property Type" value={propertyType} onChange={setPropertyType} options={["Apartment", "Villa", "Plot", "Commercial"]} openField={openField} setOpenField={setOpenField} />
+                  <SearchField id="locality" label="Locality" value={locality} onChange={setLocality} options={["Hinjewadi", "Baner", "Kharadi", "Wakad", "Aundh", "Koregaon Park"]} openField={openField} setOpenField={setOpenField} />
+
+                  <BudgetField
+                    id="budget"
+                    label="Budget"
+                    summary={budgetSummary}
+                    priceMin={priceMin}
+                    priceMax={priceMax}
+                    onChange={(lo, hi) => { setPriceMin(lo); setPriceMax(hi); }}
+                    openField={openField}
+                    setOpenField={setOpenField}
+                  />
+
+                  <SearchField id="bhk" label="BHK" value={bhk} onChange={setBhk} options={["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"]} openField={openField} setOpenField={setOpenField} />
+                  <SearchField id="possession" label="Possession" value={possession} onChange={setPossession} options={["Ready to Move", "Within 1 Year", "1 – 3 Years", "Under Construction"]} openField={openField} setOpenField={setOpenField} last />
                 </div>
 
                 <div className="flex items-center justify-center p-2 lg:p-2">
-                  <MagneticButton onClick={handleSearch} className="w-full lg:w-auto h-12 px-8 rounded-[22px] text-white font-sans font-bold text-[14.5px] inline-flex items-center justify-center gap-2.5 shadow-cta lg:min-w-[160px] hover:brightness-110 transition-all bg-[linear-gradient(135deg,#C9A961_0%,#8C6A2F_100%)]">
+                  <MagneticButton onClick={handleSearch} className="w-full lg:w-auto h-12 px-8 rounded-[18px] sm:rounded-[22px] text-white font-sans font-bold text-[14.5px] inline-flex items-center justify-center gap-2.5 shadow-cta lg:min-w-[160px] hover:brightness-110 transition-all bg-[linear-gradient(135deg,#C9A961_0%,#8C6A2F_100%)]">
                     Search <span aria-hidden>&rarr;</span>
                   </MagneticButton>
                 </div>
               </div>
 
-              <div className="flex justify-between flex-wrap gap-3 px-4 pt-3.5 pb-2 text-[13px] font-medium text-navy/80">
-                <span>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-3 px-4 pt-3.5 pb-2 text-[12.5px] sm:text-[13px] font-medium text-navy/80">
+                <span className="leading-relaxed">
                   Most searched:&nbsp;
                   <Link href="/localities/baner" className="text-navy font-bold underline underline-offset-2 decoration-gold/60 hover:decoration-gold-hover transition-colors">3BHK in Baner</Link>
                   <span className="mx-2 text-slate/50">&middot;</span>
                   <Link href="/localities/hinjwadi" className="text-navy font-bold underline underline-offset-2 decoration-gold/60 hover:decoration-gold-hover transition-colors">Ready in Hinjewadi</Link>
                 </span>
-                <Link href="/localities/hinjwadi" className="text-[#6B4F23] font-bold hover:text-navy transition-colors">Browse all 340+ properties &rarr;</Link>
+                <Link href="/localities/hinjwadi" className="text-[#6B4F23] font-bold hover:text-navy transition-colors whitespace-nowrap">Browse all 340+ &rarr;</Link>
               </div>
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 1.1, ease: [0.22, 1, 0.36, 1] }} className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 mt-9 pt-7 border-t border-white/20">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 1.1, ease: [0.22, 1, 0.36, 1] }} className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 lg:gap-12 mt-9 pt-7 border-t border-white/20">
             {[
               { num: 340, sup: "+", label: "Curated Homes" },
               { num: 28, sup: "", label: "Pune Localities" },
@@ -158,11 +223,11 @@ export default function Hero() {
               { num: 7, sup: "yrs", label: "Of Trust" },
             ].map((s, i) => (
               <div key={i} className="flex flex-col items-center gap-1">
-                <span className="font-sans font-semibold text-[32px] tnum leading-none text-white">
+                <span className="font-sans font-semibold text-[26px] sm:text-[32px] tnum leading-none text-white">
                   <Counter to={s.num} />
                   <sup className="text-[0.55em] text-gold font-medium ml-0.5">{s.sup}</sup>
                 </span>
-                <span className="font-sans font-semibold uppercase text-[11px] tracking-[0.14em] text-white/70">{s.label}</span>
+                <span className="font-sans font-semibold uppercase text-[10px] sm:text-[11px] tracking-[0.14em] text-white/70 text-center">{s.label}</span>
               </div>
             ))}
           </motion.div>
@@ -172,18 +237,325 @@ export default function Hero() {
   );
 }
 
-function SearchField({ label, value, onChange, options, last }: { label: string; value: string; onChange: (v: string) => void; options: string[]; last?: boolean }) {
+/* — Field with chevron + dropdown panel of options — */
+function SearchField({
+  id,
+  label,
+  value,
+  onChange,
+  options,
+  openField,
+  setOpenField,
+  last,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  openField: string | null;
+  setOpenField: (id: string | null) => void;
+  last?: boolean;
+}) {
+  const isOpen = openField === id;
   return (
-    <label
+    <div
+      data-search-field
       className={
-        "group relative flex flex-col justify-center px-5 py-3.5 cursor-pointer transition-colors hover:bg-white lg:flex-1 " +
+        "group relative lg:flex-1 " +
         (last ? "" : "lg:after:content-[''] lg:after:absolute lg:after:right-0 lg:after:top-3 lg:after:bottom-3 lg:after:w-px lg:after:bg-gradient-to-b lg:after:from-transparent lg:after:via-navy/15 lg:after:to-transparent")
       }
     >
-      <span className="font-sans font-bold uppercase text-[10.5px] tracking-[0.16em] text-[#6B4F23] mb-1 transition-colors group-hover:text-[#8C6A2F]">{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="appearance-none bg-transparent border-0 p-0 font-sans font-bold text-[15.5px] text-navy outline-none cursor-pointer leading-tight focus:text-[#8C6A2F]">
-        {options.map((o) => <option key={o} value={o}>{o}</option>)}
-      </select>
-    </label>
+      <button
+        type="button"
+        onClick={() => setOpenField(isOpen ? null : id)}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        className="w-full flex items-center justify-between gap-2 px-4 sm:px-5 py-3 sm:py-3.5 text-left cursor-pointer transition-colors hover:bg-white/60"
+      >
+        <div className="flex flex-col min-w-0">
+          <span className="font-sans font-bold uppercase text-[10px] sm:text-[10.5px] tracking-[0.14em] sm:tracking-[0.16em] text-[#6B4F23] mb-0.5 sm:mb-1 transition-colors group-hover:text-[#8C6A2F]">{label}</span>
+          <span className="font-sans font-bold text-[14.5px] sm:text-[15.5px] text-navy leading-tight truncate">{value}</span>
+        </div>
+        <span className={"text-navy/50 transition-transform duration-200 shrink-0 " + (isOpen ? "rotate-180" : "")} aria-hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-2 right-2 sm:left-0 sm:right-0 mt-1.5 z-30 bg-white border border-navy/10 rounded-2xl shadow-[0_20px_50px_hsl(var(--navy)/0.25)] overflow-hidden lg:min-w-[200px]">
+          <ul role="listbox" className="max-h-[280px] overflow-y-auto py-1.5">
+            {options.map((o) => {
+              const selected = o === value;
+              return (
+                <li key={o} role="option" aria-selected={selected}>
+                  <button
+                    type="button"
+                    onClick={() => { onChange(o); setOpenField(null); }}
+                    className={"w-full text-left px-4 py-2.5 text-[14px] font-sans font-semibold transition-colors flex items-center justify-between gap-2 " + (selected ? "bg-gold/10 text-gold-hover" : "text-navy hover:bg-ivory")}
+                  >
+                    {o}
+                    {selected && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* — Budget field with dual-handle slider — */
+function BudgetField({
+  id,
+  label,
+  summary,
+  priceMin,
+  priceMax,
+  onChange,
+  openField,
+  setOpenField,
+}: {
+  id: string;
+  label: string;
+  summary: string;
+  priceMin: number;
+  priceMax: number;
+  onChange: (lo: number, hi: number) => void;
+  openField: string | null;
+  setOpenField: (id: string | null) => void;
+}) {
+  const isOpen = openField === id;
+  return (
+    <div
+      data-search-field
+      className="group relative lg:flex-1 lg:after:content-[''] lg:after:absolute lg:after:right-0 lg:after:top-3 lg:after:bottom-3 lg:after:w-px lg:after:bg-gradient-to-b lg:after:from-transparent lg:after:via-navy/15 lg:after:to-transparent"
+    >
+      <button
+        type="button"
+        onClick={() => setOpenField(isOpen ? null : id)}
+        aria-expanded={isOpen}
+        aria-haspopup="dialog"
+        className="w-full flex items-center justify-between gap-2 px-4 sm:px-5 py-3 sm:py-3.5 text-left cursor-pointer transition-colors hover:bg-white/60"
+      >
+        <div className="flex flex-col min-w-0">
+          <span className="font-sans font-bold uppercase text-[10px] sm:text-[10.5px] tracking-[0.14em] sm:tracking-[0.16em] text-[#6B4F23] mb-0.5 sm:mb-1 transition-colors group-hover:text-[#8C6A2F]">{label}</span>
+          <span className="font-sans font-bold text-[14.5px] sm:text-[15.5px] text-navy leading-tight truncate">{summary}</span>
+        </div>
+        <span className={"text-navy/50 transition-transform duration-200 shrink-0 " + (isOpen ? "rotate-180" : "")} aria-hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-2 right-2 sm:left-0 sm:right-auto lg:left-1/2 lg:right-auto lg:-translate-x-1/2 mt-1.5 z-30 bg-white border border-navy/10 rounded-2xl shadow-[0_20px_50px_hsl(var(--navy)/0.25)] p-4 sm:p-5 lg:w-[380px] sm:w-[360px]">
+          <RangeSlider
+            min={PRICE_MIN_BOUND}
+            max={PRICE_MAX_BOUND}
+            step={PRICE_STEP}
+            valueMin={priceMin}
+            valueMax={priceMax}
+            onChange={onChange}
+            format={formatPrice}
+            ticks={PRICE_TICKS}
+          />
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-navy/8">
+            <button type="button" onClick={() => onChange(PRICE_MIN_BOUND, PRICE_MAX_BOUND)} className="text-[12px] font-semibold text-slate hover:text-navy transition-colors">
+              Reset
+            </button>
+            <button type="button" onClick={() => setOpenField(null)} className="px-4 py-1.5 rounded-pill bg-gold text-white text-[12px] font-semibold hover:bg-gold-hover transition-colors shadow-cta">
+              Apply
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* — Dual-handle range slider with tick marks — */
+function RangeSlider({
+  min,
+  max,
+  step,
+  valueMin,
+  valueMax,
+  onChange,
+  format,
+  ticks,
+}: {
+  min: number;
+  max: number;
+  step: number;
+  valueMin: number;
+  valueMax: number;
+  onChange: (lo: number, hi: number) => void;
+  format: (n: number) => string;
+  ticks?: { value: number; label: string; major: boolean }[];
+}) {
+  const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const next = Math.min(+e.target.value, valueMax - step);
+    onChange(next, valueMax);
+  };
+  const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const next = Math.max(+e.target.value, valueMin + step);
+    onChange(valueMin, next);
+  };
+
+  const pctMin = ((valueMin - min) / (max - min)) * 100;
+  const pctMax = ((valueMax - min) / (max - min)) * 100;
+  const pctOf = (v: number) => ((v - min) / (max - min)) * 100;
+
+  return (
+    <div className="px-1 py-1">
+      <div className="flex items-baseline justify-between mb-5">
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate mb-0.5">Min</div>
+          <div className="font-sans font-bold text-[16px] text-navy tnum">{format(valueMin)}</div>
+        </div>
+        <div className="text-slate/40 mt-3">&mdash;</div>
+        <div className="text-right">
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate mb-0.5">Max</div>
+          <div className="font-sans font-bold text-[16px] text-navy tnum">{format(valueMax)}</div>
+        </div>
+      </div>
+
+      <div className="relative mx-3 pb-8">
+        <div className="relative h-6 flex items-center">
+          {/* 1. Track background bar */}
+          <div className="absolute left-0 right-0 h-1.5 rounded-full bg-gold-light pointer-events-none z-[1]" />
+
+          {/* 2. Active range fill */}
+          <div
+            className="absolute h-1.5 rounded-full bg-gold pointer-events-none z-[2]"
+            style={{ left: pctMin + "%", right: (100 - pctMax) + "%" }}
+          />
+
+          {/* 3. Tick marks */}
+          {ticks && ticks.map((t) => {
+            const pct = pctOf(t.value);
+            const inRange = t.value >= valueMin && t.value <= valueMax;
+            return (
+              <span
+                key={"tick-" + t.value}
+                className={"absolute -translate-x-1/2 w-px rounded-full pointer-events-none z-[3] " + 
+                  (t.major ? "h-3" : "h-2") + " " + 
+                  (inRange ? "bg-gold" : "bg-navy/25")}
+                style={{ left: pct + "%" }}
+                aria-hidden
+              />
+            );
+          })}
+
+          {/* 4. Range inputs - z-index is higher to ensure handles are clickable and above visual lines */}
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={valueMin}
+            onChange={handleMinChange}
+            className="range-input-hero"
+            aria-label="Minimum price"
+          />
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={valueMax}
+            onChange={handleMaxChange}
+            className="range-input-hero"
+            aria-label="Maximum price"
+          />
+        </div>
+
+        {/* Labels below */}
+        {ticks && (
+          <div className="absolute left-0 right-0 top-full mt-2 h-5">
+            {ticks.filter((t) => t.major).map((t) => {
+              const pct = pctOf(t.value);
+              const inRange = t.value >= valueMin && t.value <= valueMax;
+              return (
+                <span
+                  key={"lbl-" + t.value}
+                  className={"absolute -translate-x-1/2 text-[10px] font-semibold tnum whitespace-nowrap pointer-events-none " + (inRange ? "text-navy" : "text-slate/50")}
+                  style={{ left: pct + "%" }}
+                >
+                  {t.label}
+                </span>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <style jsx>{`
+        .range-input-hero {
+          -webkit-appearance: none;
+          appearance: none;
+          position: absolute;
+          width: 100%;
+          background: transparent;
+          pointer-events: none;
+          outline: none;
+          margin: 0;
+          height: 24px;
+          z-index: 20;
+        }
+        
+        .range-input-hero::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: hsl(var(--gold));
+          border: 3px solid white;
+          box-shadow: 0 4px 12px hsl(var(--gold) / 0.45);
+          cursor: pointer;
+          pointer-events: auto;
+          margin-top: 0px; 
+          transition: transform 0.1s ease;
+          position: relative;
+          z-index: 30;
+        }
+
+        .range-input-hero::-webkit-slider-thumb:hover { transform: scale(1.1); }
+
+        .range-input-hero::-moz-range-thumb {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: hsl(var(--gold));
+          border: 3px solid white;
+          box-shadow: 0 4px 12px hsl(var(--gold) / 0.45);
+          cursor: pointer;
+          pointer-events: auto;
+          border: none;
+          z-index: 30;
+        }
+
+        .range-input-hero::-webkit-slider-runnable-track {
+          background: transparent;
+          height: 24px;
+        }
+        
+        /* Ensure the second handle (Max) is clickable when handles overlap */
+        .range-input-hero:last-of-type {
+          z-index: 21;
+        }
+      `}</style>
+    </div>
   );
 }
