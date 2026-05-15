@@ -85,10 +85,10 @@ export default function Footer() {
             </p>
 
             <div className="flex items-center gap-3.5 p-4 rounded-card bg-ivory/6 border border-ivory/10 max-w-[380px] mb-5">
-              <div className="w-12 h-12 rounded-full bg-gold text-white grid place-items-center font-sans font-bold text-[14px] shadow-cta">AK</div>
+              <div className="w-12 h-12 rounded-full bg-gold text-white grid place-items-center font-sans font-bold text-[14px] shadow-cta">SK</div>
               <div>
-                <div className="font-sans font-semibold text-[17px] text-ivory tracking-tight">Aditya Khanna</div>
-                <div className="meta text-ivory/60">Founder &middot; Senior Advisor</div>
+                <div className="font-sans font-semibold text-[17px] text-ivory tracking-tight">Sarika K.</div>
+                <div className="meta text-ivory/60">Senior Advisor</div>
               </div>
             </div>
 
@@ -104,7 +104,7 @@ export default function Footer() {
 
           <FooterCol title="Locations" items={["Hinjewadi","Baner","Kharadi","Wakad","Aundh","Koregaon Park","Chinchwad & Akurdi","Hadapsar"]} />
           <FooterCol title="Quick Links" items={["All Projects","New Launches","Ready to Move","Interior Design","EMI Calculator","About Us","Contact"]} />
-          <FooterCol title="Reach Us" items={["5th Floor, ICC Tower","Senapati Bapat Road, Pune","+91 919890122755","hello@abhighar.in","Mon – Sat · 10 AM – 8 PM"]} plain />
+          <FooterCol title="Reach Us" items={["Pune","+91 9890122755","hello@abhighar.in","Mon – Sat · 10 AM – 8 PM"]} plain />
         </div>
 
         <div className="pt-7 flex justify-between items-center flex-wrap gap-5">

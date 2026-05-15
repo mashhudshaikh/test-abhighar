@@ -1,13 +1,24 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
 import { Property } from "@/lib/data";
 import PropertyCard from "./property-card";
 
-type BHK = "all" | 1 | 2 | 3 | 4 | 5;
-type StatusF = "all" | "ready" | "under-construction";
-type Possession = "all" | "ready-2025" | "2026-2027" | "2028+";
+// — Property type config (mirrors hero) —
+type PropertyTypeKey = "Apartment" | "Villa" | "Duplex" | "Plot" | "Studio" | "Commercial";
+
+const PROPERTY_TYPE_OPTIONS: PropertyTypeKey[] = ["Apartment", "Villa", "Duplex", "Plot", "Studio", "Commercial"];
+
+const PROPERTY_TYPE_CONFIG: Record<PropertyTypeKey, { label: string; options: string[] }> = {
+  Apartment:  { label: "BHK",        options: ["Any", "1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
+  Villa:      { label: "BHK",        options: ["Any", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
+  Duplex:     { label: "BHK",        options: ["Any", "3 BHK", "4 BHK", "5 BHK", "6+ BHK"] },
+  Plot:       { label: "Listing",    options: ["Any", "Buy", "Lease"] },
+  Studio:     { label: "Config",     options: ["Any", "1 RK"] },
+  Commercial: { label: "Space Type", options: ["Any", "Showroom", "Shop", "Office Space", "Lease"] },
+};
+
+type Possession = "all" | "new-launch" | "under-construction" | "nearing" | "ready";
 type Sort = "newest" | "price-low" | "price-high";
 
 const PRICE_MIN_BOUND = 0;
@@ -37,6 +48,11 @@ function formatPrice(lakhs: number): string {
   return "₹" + lakhs + " L";
 }
 
+function bhkFromLabel(label: string): number | null {
+  const m = label.match(/^(\d+)/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
 export default function LocalityListings({
   localityName,
   properties,
@@ -44,11 +60,10 @@ export default function LocalityListings({
   localityName: string;
   properties: Property[];
 }) {
-  const [view, setView] = useState<"grid" | "map">("grid");
-  const [bhk, setBhk] = useState<BHK>("all");
+  const [propertyType, setPropertyType] = useState<PropertyTypeKey>("Apartment");
+  const [typeSubChoice, setTypeSubChoice] = useState<string>("Any");
   const [priceMin, setPriceMin] = useState(PRICE_MIN_BOUND);
   const [priceMax, setPriceMax] = useState(PRICE_MAX_BOUND);
-  const [status, setStatus] = useState<StatusF>("all");
   const [possession, setPossession] = useState<Possession>("all");
   const [sort, setSort] = useState<Sort>("newest");
 
@@ -73,8 +88,6 @@ export default function LocalityListings({
     };
   }, []);
 
-  // Lock body scroll AND add a "sheet-open" class on body when any pill is open on mobile.
-  // The class lets WhatsApp float (and any other floating element) respond by hiding.
   useEffect(() => {
     if (typeof window === "undefined" || window.innerWidth >= 640) return;
     if (!openPill) return;
@@ -91,24 +104,55 @@ export default function LocalityListings({
     setOpenPill((curr) => (curr === id ? null : id));
   }, []);
 
+  const handlePropertyTypeChange = (next: PropertyTypeKey) => {
+    setPropertyType(next);
+    setTypeSubChoice("Any");
+    setOpenPill(null);
+  };
+
+  const currentTypeConfig = PROPERTY_TYPE_CONFIG[propertyType];
+
   const filtered = useMemo(() => {
     let list = [...properties];
-    if (bhk !== "all") list = list.filter((p) => p.bhkOptions.includes(bhk));
-    if (status !== "all") list = list.filter((p) => p.status === status);
+
+    if (currentTypeConfig.label === "BHK" && typeSubChoice !== "Any") {
+      const n = bhkFromLabel(typeSubChoice);
+      if (n !== null && n <= 5) {
+        list = list.filter((p) => p.bhkOptions.includes(n as 1 | 2 | 3 | 4 | 5));
+      } else if (n !== null && n >= 5) {
+        list = list.filter((p) => p.bhkOptions.includes(5));
+      }
+    }
+
     const effectiveMax = priceMax >= PRICE_MAX_BOUND ? Infinity : priceMax;
     list = list.filter((p) => p.priceMin <= effectiveMax && p.priceMax >= priceMin);
-    if (possession === "ready-2025") list = list.filter((p) => p.possessionYear <= 2025);
-    if (possession === "2026-2027") list = list.filter((p) => p.possessionYear >= 2026 && p.possessionYear <= 2027);
-    if (possession === "2028+")     list = list.filter((p) => p.possessionYear >= 2028);
+
+    if (possession === "ready") {
+      list = list.filter((p) => p.status === "ready");
+    } else if (possession === "nearing") {
+      list = list.filter((p) => p.status === "under-construction" && p.possessionYear <= 2027);
+    } else if (possession === "under-construction") {
+      list = list.filter((p) => p.status === "under-construction" && p.possessionYear === 2028);
+    } else if (possession === "new-launch") {
+      list = list.filter((p) => p.status === "under-construction" && p.possessionYear >= 2029);
+    }
+
     if (sort === "price-low")  list.sort((a, b) => a.priceMin - b.priceMin);
     if (sort === "price-high") list.sort((a, b) => b.priceMax - a.priceMax);
     return list;
-  }, [properties, bhk, priceMin, priceMax, status, possession, sort]);
+  }, [properties, currentTypeConfig.label, typeSubChoice, priceMin, priceMax, possession, sort]);
 
   const budgetSummary =
     priceMin === PRICE_MIN_BOUND && priceMax >= PRICE_MAX_BOUND
       ? "Any"
       : formatPrice(priceMin) + " – " + formatPrice(priceMax);
+
+  const possessionLabel =
+    possession === "all" ? "Any" :
+    possession === "new-launch" ? "New Launch" :
+    possession === "under-construction" ? "Under Constr." :
+    possession === "nearing" ? "Nearing" :
+    "Ready";
 
   return (
     <div className="container-x py-6 sm:py-8 lg:py-10">
@@ -116,17 +160,6 @@ export default function LocalityListings({
         <div className="meta text-slate">
           <strong className="text-navy font-semibold">{filtered.length}</strong> propert
           {filtered.length === 1 ? "y" : "ies"} in {localityName}
-        </div>
-        <div className="inline-flex p-1 rounded-pill bg-white border border-navy/10 shadow-card">
-          {(["grid", "map"] as const).map((v) => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              className={"px-3 sm:px-4 py-1.5 rounded-pill text-[12px] sm:text-[13px] font-semibold transition-colors " + (view === v ? "bg-gold text-white shadow-cta" : "text-slate hover:text-navy")}
-            >
-              {v === "grid" ? "Grid" : "Map view"}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -137,10 +170,28 @@ export default function LocalityListings({
               1 locality
             </span>
 
-            <Pill id="bhk" openPill={openPill} togglePill={togglePill} label="BHK" value={bhk === "all" ? "Any" : bhk + " BHK"}>
-              {(["all", 1, 2, 3, 4, 5] as const).map((v) => (
-                <Opt key={v.toString()} active={bhk === v} onClick={() => { setBhk(v); setOpenPill(null); }}>
-                  {v === "all" ? "Any" : v + " BHK"}
+            <Pill id="propertyType" openPill={openPill} togglePill={togglePill} label="Type" value={propertyType}>
+              {PROPERTY_TYPE_OPTIONS.map((v) => (
+                <Opt key={v} active={propertyType === v} onClick={() => handlePropertyTypeChange(v)}>
+                  {v}
+                </Opt>
+              ))}
+            </Pill>
+
+            <Pill
+              id="typeSubChoice"
+              openPill={openPill}
+              togglePill={togglePill}
+              label={currentTypeConfig.label}
+              value={typeSubChoice}
+            >
+              {currentTypeConfig.options.map((v) => (
+                <Opt
+                  key={v}
+                  active={typeSubChoice === v}
+                  onClick={() => { setTypeSubChoice(v); setOpenPill(null); }}
+                >
+                  {v}
                 </Opt>
               ))}
             </Pill>
@@ -166,21 +217,12 @@ export default function LocalityListings({
               </div>
             </Pill>
 
-            <Pill id="status" openPill={openPill} togglePill={togglePill} label="Status" value={status === "all" ? "Any" : status === "ready" ? "Ready" : "Under Constr."}>
-              <Opt active={status === "all"}                 onClick={() => { setStatus("all"); setOpenPill(null); }}>Any</Opt>
-              <Opt active={status === "ready"}               onClick={() => { setStatus("ready"); setOpenPill(null); }}>Ready to move</Opt>
-              <Opt active={status === "under-construction"} onClick={() => { setStatus("under-construction"); setOpenPill(null); }}>Under Construction</Opt>
-            </Pill>
-
-            <Pill id="possession" openPill={openPill} togglePill={togglePill} label="Possession" value={
-              possession === "all" ? "Any" :
-              possession === "ready-2025" ? "By 2025" :
-              possession === "2026-2027" ? "2026–2027" : "2028+"
-            }>
-              <Opt active={possession === "all"}        onClick={() => { setPossession("all"); setOpenPill(null); }}>Any</Opt>
-              <Opt active={possession === "ready-2025"} onClick={() => { setPossession("ready-2025"); setOpenPill(null); }}>By 2025</Opt>
-              <Opt active={possession === "2026-2027"}  onClick={() => { setPossession("2026-2027"); setOpenPill(null); }}>2026 – 2027</Opt>
-              <Opt active={possession === "2028+"}      onClick={() => { setPossession("2028+"); setOpenPill(null); }}>2028 or later</Opt>
+            <Pill id="possession" openPill={openPill} togglePill={togglePill} label="Possession" value={possessionLabel}>
+              <Opt active={possession === "all"}                 onClick={() => { setPossession("all"); setOpenPill(null); }}>Any</Opt>
+              <Opt active={possession === "new-launch"}          onClick={() => { setPossession("new-launch"); setOpenPill(null); }}>New Launch</Opt>
+              <Opt active={possession === "under-construction"} onClick={() => { setPossession("under-construction"); setOpenPill(null); }}>Under Construction</Opt>
+              <Opt active={possession === "nearing"}             onClick={() => { setPossession("nearing"); setOpenPill(null); }}>Nearing Possession</Opt>
+              <Opt active={possession === "ready"}               onClick={() => { setPossession("ready"); setOpenPill(null); }}>Ready to Move</Opt>
             </Pill>
           </div>
 
@@ -199,17 +241,11 @@ export default function LocalityListings({
         </div>
       </div>
 
-      {view === "grid" ? (
-        filtered.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {filtered.map((p) => <PropertyCard key={p.slug} property={p} />)}
-          </div>
-        )
+      {filtered.length === 0 ? (
+        <EmptyState />
       ) : (
-        <div className="rounded-card bg-white border border-navy/10 h-[360px] sm:h-[480px] grid place-items-center text-slate text-center px-6">
-          Map view coming soon. <Link href="#" className="text-gold ml-2 underline">Notify me</Link>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          {filtered.map((p) => <PropertyCard key={p.slug} property={p} />)}
         </div>
       )}
 
@@ -223,7 +259,6 @@ export default function LocalityListings({
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Hide any element marked as a floating CTA while a bottom sheet is open */
         body.sheet-open [data-whatsapp-float],
         body.sheet-open .whatsapp-float {
           opacity: 0;

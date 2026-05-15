@@ -16,10 +16,20 @@ export const projects = [
 ] as const;
 
 export const advisors = [
-  { name: "Aditya Khanna",   role: "Founder · Senior Advisor",  exp: "16 yrs", area: "Pune Markets",        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80" },
-  { name: "Meera Joshi",     role: "Head · West Pune",          exp: "11 yrs", area: "Baner & Hinjewadi",   image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=240&q=80" },
-  { name: "Rohan Deshmukh",  role: "Head · East Pune",          exp: "9 yrs",  area: "Kharadi & Hadapsar",  image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80" },
-  { name: "Priya Bhandari",  role: "Lead · Legal & Loans",      exp: "13 yrs", area: "Documentation",       image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80" },
+  {
+    name: "Sarika K.",
+    role: "Senior Advisor",
+    exp: "8 yrs",
+    area: "Pune Markets",
+    image: "/advisors/sarika-k.jpg"
+  },
+  {
+    name: "Kedar Naik",
+    role: "Regional Sales Manager",
+    exp: "11 yrs",
+    area: "Baner & Hinjewadi",
+    image: "/advisors/kedar-naik.jpg"
+  }
 ] as const;
 
 export const testimonials = [

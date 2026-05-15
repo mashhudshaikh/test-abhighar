@@ -84,7 +84,7 @@ const quickFacts = [
                     {ready ? "Ready to move" : "Under Construction"}
                   </span>
                   <span className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-pill bg-success/10 text-success border border-success/30 text-[11.5px] sm:text-[12px] font-semibold">
-                    <span aria-hidden="true">&check;</span> RERA Verified
+                    <span aria-hidden="true">RERA Verified</span> 
                   </span>
                   <span className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-pill bg-white text-slate border border-navy/12 text-[11.5px] sm:text-[12px] font-semibold tnum">
                     RERA: {p.rera}
@@ -249,7 +249,7 @@ const quickFacts = [
 
               <section id="documents" className="pt-16 scroll-mt-[160px]">
                 <div className="sec-eyebrow mb-3">Documents</div>
-                <h2 className="h2-section text-navy mb-6">Brochure &amp; RERA papers.</h2>
+                <h2 className="h2-section text-navy mb-6">Brochure &amp; RERA Certificate.</h2>
                 <div className="card-base p-6 flex items-center justify-between flex-wrap gap-4">
                   <div>
                     <div className="font-sans font-semibold text-[15px] text-navy mb-1">Project brochure &amp; RERA approvals</div>

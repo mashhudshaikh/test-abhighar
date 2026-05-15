@@ -27,15 +27,12 @@ export default function AdvisorModal({
     };
   }, [open]);
 
-  // Close on Escape
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  // NOTE: Escape-key-to-close was removed intentionally.
+  // This is a lead-capture modal — the only ways to close it are:
+  //   1. The explicit X button (top-right)
+  //   2. A successful form submission (auto-closes after the "lead-unlock" event)
+  // Backdrop taps and Escape were removed to prevent accidental dismissal
+  // when the user's true intent is to fill the form.
 
   // Auto-close modal after a successful submit (LeadGates will be unlocked).
   // The AdvisorCard dispatches "lead-unlock" inside its submit handler.
@@ -53,25 +50,44 @@ export default function AdvisorModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-fade-in" role="dialog" aria-modal="true" aria-label="Contact form">
-      {/* Backdrop */}
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Close"
-        className="absolute inset-0 bg-navy/70 backdrop-blur-md cursor-default"
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-fade-in"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Contact form"
+    >
+      {/* Backdrop — purely visual, NOT interactive.
+          Was previously a <button onClick={onClose}> which dismissed the modal
+          on any backdrop tap. Lead-capture modals shouldn't dismiss accidentally
+          — the user must explicitly choose to close via the X button. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-navy/70 backdrop-blur-md pointer-events-none"
       />
 
       {/* Modal panel */}
       <div className="relative w-full max-w-[440px] max-h-[92vh] overflow-y-auto rounded-card shadow-[0_30px_80px_hsl(var(--navy)/0.45)] animate-pop-in advisor-modal-scroll">
-        {/* Close button — sits over the advisor card's top-right */}
+        {/* Close button — the ONLY way to close this modal besides submitting.
+            Sized at 40×40 (above the 44px touch-target guideline relaxed slightly
+            for visual balance) with a high-contrast hover state so it's never
+            mistaken for decoration. */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close form"
-          className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 text-white grid place-items-center backdrop-blur-sm transition-colors"
+          className="absolute top-3 right-3 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/35 active:bg-white/45 text-white grid place-items-center backdrop-blur-sm transition-colors ring-1 ring-white/30 hover:ring-white/50"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
