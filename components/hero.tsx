@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
 import SplitText from "./ui/split-text";
@@ -47,6 +47,15 @@ const PROPERTY_TYPE_CONFIG: Record<PropertyTypeKey, { label: string; options: st
   Commercial: { label: "Space Type", options: ["Showroom", "Shop", "Office Space", "Lease"] },
 };
 
+const LOCALITY_OPTIONS = [
+  "Aundh",
+  "Baner",
+  "Hinjewadi",
+  "Kharadi",
+  "Koregaon Park",
+  "Wakad",
+];
+
 function formatPrice(lakhs: number): string {
   if (lakhs >= PRICE_MAX_BOUND) return "10 Cr+";
   if (lakhs >= 100) {
@@ -61,7 +70,6 @@ export default function Hero() {
   const router = useRouter();
   const { scrollY } = useScroll();
 
-  // Detect touch / low-power devices ONCE. We skip parallax and heavy effects here.
   const [isLite, setIsLite] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -72,11 +80,11 @@ export default function Hero() {
 
   const [slide, setSlide] = useState(0);
   const [propertyType, setPropertyType] = useState<PropertyTypeKey>("Apartment");
-  const [locality, setLocality] = useState("Hinjewadi");
+  const [locality, setLocality] = useState("Aundh");
   const [priceMin, setPriceMin] = useState(PRICE_MIN_BOUND);
   const [priceMax, setPriceMax] = useState(PRICE_MAX_BOUND);
-  const [typeSubChoice, setTypeSubChoice] = useState<string>(PROPERTY_TYPE_CONFIG.Apartment.options[1]);
-  const [possession, setPossession] = useState("Ready to Move");
+  const [typeSubChoice, setTypeSubChoice] = useState<string>(PROPERTY_TYPE_CONFIG.Apartment.options[0]);
+  const [possession, setPossession] = useState("New Launch");
   const [openField, setOpenField] = useState<string | null>(null);
 
   useEffect(() => {
@@ -123,7 +131,6 @@ export default function Hero() {
 
   const currentTypeConfig = PROPERTY_TYPE_CONFIG[propertyType];
 
-  // Heavy parallax/spring stuff — created ALWAYS (hooks rule), but only applied via style when !isLite
   const sSpring = { damping: 25, stiffness: 100, mass: 0.5 };
   const photoY = useSpring(useTransform(scrollY, [0, 900], [0, 240]), sSpring);
   const blobsY = useSpring(useTransform(scrollY, [0, 900], [0, 120]), sSpring);
@@ -152,7 +159,6 @@ export default function Hero() {
     mx.set(0); my.set(0);
   }
 
-  // Conditional style objects — empty {} means no transform/animation
   const photoStyle = isLite ? {} : { y: photoY, x: photoMx, scale: photoS };
   const photoInnerStyle = isLite ? {} : { y: photoMy };
   const blobsStyle = isLite ? {} : { y: blobsY, x: blobsMx };
@@ -165,10 +171,9 @@ export default function Hero() {
       ref={heroRef}
       onMouseMove={isLite ? undefined : handleMouseMove}
       onMouseLeave={isLite ? undefined : handleMouseLeave}
-      className="relative isolate min-h-[600px] lg:min-h-[720px] overflow-hidden bg-navy text-white pt-20 sm:pt-24 lg:pt-32 pb-24 sm:pb-28 lg:pb-32"
+      className="relative isolate min-h-[600px] lg:min-h-[760px] overflow-hidden bg-navy text-white pt-20 sm:pt-24 lg:pt-32 pb-36 sm:pb-40 lg:pb-44"
     >
 
-      {/* Photo background — parallax only on desktop. On mobile a static image. */}
       <motion.div className="absolute inset-[-10%_-5%] z-0 will-change-transform" style={photoStyle}>
         <motion.div className="relative w-full h-full" style={photoInnerStyle}>
           <AnimatePresence>
@@ -180,7 +185,6 @@ export default function Hero() {
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 80% 0%, hsl(var(--gold) / 0.2), transparent 50%), radial-gradient(ellipse at 20% 100%, hsl(var(--navy-80) / 0.55), transparent 55%), linear-gradient(180deg, hsl(var(--navy) / 0.55) 0%, hsl(var(--navy) / 0.30) 40%, hsl(var(--navy) / 0.85) 100%)" }} />
       </motion.div>
 
-      {/* Decorative blobs — only render heavy ones on desktop. Mobile gets 2 small static ones. */}
       {!isLite ? (
         <motion.div className="absolute inset-0 z-[1] pointer-events-none" style={blobsStyle}>
           <motion.div style={blobsInnerStyle} className="absolute inset-0">
@@ -191,14 +195,12 @@ export default function Hero() {
           </motion.div>
         </motion.div>
       ) : (
-        // Mobile lite — 2 smaller, no-blur, no-animation ambient highlights
         <div className="absolute inset-0 z-[1] pointer-events-none">
           <div className="absolute rounded-full opacity-30" style={{ width: 320, height: 320, top: -80, right: -100, background: "radial-gradient(circle, hsl(var(--gold) / 0.35), transparent 70%)" }} />
           <div className="absolute rounded-full opacity-25" style={{ width: 280, height: 280, bottom: -80, left: -80, background: "radial-gradient(circle, hsl(var(--gold) / 0.25), transparent 70%)" }} />
         </div>
       )}
 
-      {/* Grain — desktop only. Mobile doesn't need this much detail. */}
       {!isLite && <div className="absolute inset-0 z-[2] grain opacity-40 pointer-events-none" />}
 
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[4] flex gap-2">
@@ -243,7 +245,18 @@ export default function Hero() {
               <div className="flex flex-col lg:flex-row items-stretch bg-ivory rounded-[22px] sm:rounded-[28px] overflow-visible">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-1 lg:items-stretch">
                   <SearchField id="propertyType" label="Property Type" value={propertyType} onChange={handlePropertyTypeChange} options={PROPERTY_TYPE_OPTIONS as unknown as string[]} openField={openField} setOpenField={setOpenField} />
-                  <SearchField id="locality" label="Locality" value={locality} onChange={setLocality} options={["Aundh", "Baner", "Hinjewadi", "Kharadi", "Koregaon Park", "Wakad"]} openField={openField} setOpenField={setOpenField} />
+
+                  <SearchField
+                    id="locality"
+                    label="Locality"
+                    value={locality}
+                    onChange={setLocality}
+                    options={LOCALITY_OPTIONS}
+                    openField={openField}
+                    setOpenField={setOpenField}
+                    searchable
+                    searchPlaceholder="Search Pune localities..."
+                  />
 
                   <BudgetField
                     id="budget"
@@ -266,7 +279,7 @@ export default function Hero() {
                     setOpenField={setOpenField}
                   />
 
-                  <SearchField id="possession" label="Possession" value={possession} onChange={setPossession} options={["New Launch", "Under Construction", "Nearing Possession", "Ready to Move"]} openField={openField} setOpenField={setOpenField} last dropPosition="up" />
+                  <SearchField id="possession" label="Possession" value={possession} onChange={setPossession} options={["New Launch", "Under Construction", "Nearing Possession", "Ready to Move"]} openField={openField} setOpenField={setOpenField} last />
                 </div>
 
                 <div className="flex items-center justify-center p-2 lg:p-2">
@@ -319,7 +332,8 @@ function SearchField({
   openField,
   setOpenField,
   last,
-  dropPosition = "auto",
+  searchable = false,
+  searchPlaceholder = "Search...",
 }: {
   id: string;
   label: string;
@@ -329,13 +343,52 @@ function SearchField({
   openField: string | null;
   setOpenField: (id: string | null) => void;
   last?: boolean;
-  dropPosition?: "auto" | "up";
+  searchable?: boolean;
+  searchPlaceholder?: string;
 }) {
   const isOpen = openField === id;
 
-  const dropClass = dropPosition === "up"
-    ? "absolute lg:bottom-full lg:top-auto top-full lg:mb-1.5 mt-1.5 left-2 right-2 sm:left-0 sm:right-0 z-50"
-    : "absolute top-full left-2 right-2 sm:left-0 sm:right-0 mt-1.5 z-50";
+  const [query, setQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Reset query when dropdown closes; auto-focus search input on open (desktop only).
+  useEffect(() => {
+    if (!isOpen) {
+      setQuery("");
+      return;
+    }
+    if (!searchable) return;
+    if (typeof window === "undefined") return;
+    const isFinePointer = window.matchMedia("(pointer: fine)").matches;
+    if (isFinePointer && searchInputRef.current) {
+      const t = setTimeout(() => searchInputRef.current?.focus(), 50);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen, searchable]);
+
+  // Filter options by query (substring, case-insensitive). Memoized so it doesn't
+  // re-run on every parent render (which happens 60x/sec from scroll springs).
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !query.trim()) return options;
+    const q = query.trim().toLowerCase();
+    return options.filter((o) => o.toLowerCase().includes(q));
+  }, [searchable, query, options]);
+
+  // ━━━ DROPDOWN HEIGHT BUDGET ━━━
+  // The hero's bottom padding now reserves enough space for:
+  //   - searchable dropdown (search input ~48px + list ~180px = ~228px total)
+  //   - non-searchable dropdown (just list ~240px)
+  // The OPTIONS LIST itself caps tighter when the dropdown has a search input
+  // on top of it, so the combined height stays predictable.
+  const listMaxHeight = searchable
+    ? "max-h-[180px] sm:max-h-[200px]"
+    : "max-h-[220px] sm:max-h-[240px]";
+
+  // Dropdown width — wider for searchable fields (need room for the input),
+  // narrower for plain ones. Mobile is always full-width minus margins.
+  const dropdownWidth = searchable
+    ? "lg:min-w-[260px]"
+    : "lg:min-w-[200px]";
 
   return (
     <div
@@ -364,31 +417,106 @@ function SearchField({
       </button>
 
       {isOpen && (
-        <div className={dropClass + " bg-white border border-navy/10 rounded-2xl shadow-[0_20px_50px_hsl(var(--navy)/0.25)] overflow-hidden lg:min-w-[200px]"}>
-          <ul role="listbox" className="max-h-[240px] overflow-y-auto py-1.5">
-            {options.map((o) => {
-              const selected = o === value;
-              return (
-                <li key={o} role="option" aria-selected={selected}>
-                  <button
-                    type="button"
-                    onClick={() => { onChange(o); setOpenField(null); }}
-                    className={"w-full text-left px-4 py-2.5 text-[14px] font-sans font-semibold transition-colors flex items-center justify-between gap-2 " + (selected ? "bg-gold/10 text-gold-hover" : "text-navy hover:bg-ivory")}
-                  >
-                    {o}
-                    {selected && (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
+        <div className={"absolute top-full left-2 right-2 sm:left-0 sm:right-0 mt-1.5 z-50 bg-white border border-navy/10 rounded-2xl shadow-[0_20px_50px_hsl(var(--navy)/0.25)] overflow-hidden flex flex-col " + dropdownWidth}>
+          {/* Search input — only shown when searchable=true. Sticks to top of dropdown. */}
+          {searchable && (
+            <div className="relative shrink-0 border-b border-navy/8 px-3 py-2.5 bg-ivory/40">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-navy/40 pointer-events-none"
+                aria-hidden
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={searchPlaceholder}
+                className="w-full pl-7 pr-8 py-1.5 bg-white border border-navy/10 rounded-lg text-[13px] font-sans font-medium text-navy placeholder:text-navy/40 outline-none focus:border-gold focus:ring-2 focus:ring-gold/15 transition-colors"
+                aria-label={"Search " + label}
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    searchInputRef.current?.focus();
+                  }}
+                  aria-label="Clear search"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-navy/10 hover:bg-navy/20 text-navy/70 grid place-items-center transition-colors"
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Options list — scrollable, capped height. */}
+          <ul role="listbox" className={"overflow-y-auto py-1.5 " + listMaxHeight}>
+            {filteredOptions.length === 0 ? (
+              <li className="px-4 py-5 text-center text-[13px] font-sans font-medium text-slate">
+                <div className="text-navy/50 mb-1">No matches found</div>
+                <div className="text-[11.5px] text-slate/70">Try a different keyword</div>
+              </li>
+            ) : (
+              filteredOptions.map((o) => {
+                const selected = o === value;
+                return (
+                  <li key={o} role="option" aria-selected={selected}>
+                    <button
+                      type="button"
+                      onClick={() => { onChange(o); setOpenField(null); }}
+                      className={"w-full text-left px-4 py-2.5 text-[14px] font-sans font-semibold transition-colors flex items-center justify-between gap-2 " + (selected ? "bg-gold/10 text-gold-hover" : "text-navy hover:bg-ivory")}
+                    >
+                      {searchable && query.trim() ? (
+                        <HighlightedText text={o} query={query} />
+                      ) : (
+                        <span>{o}</span>
+                      )}
+                      {selected && (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </button>
+                  </li>
+                );
+              })
+            )}
           </ul>
         </div>
       )}
     </div>
+  );
+}
+
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  const q = query.trim().toLowerCase();
+  const lower = text.toLowerCase();
+  const idx = lower.indexOf(q);
+  if (idx === -1) return <span>{text}</span>;
+  const before = text.slice(0, idx);
+  const match = text.slice(idx, idx + q.length);
+  const after = text.slice(idx + q.length);
+  return (
+    <span>
+      {before}
+      <mark className="bg-gold/25 text-navy font-extrabold rounded px-0.5 not-italic">{match}</mark>
+      {after}
+    </span>
   );
 }
 

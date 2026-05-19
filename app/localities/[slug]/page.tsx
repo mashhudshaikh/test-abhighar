@@ -16,11 +16,14 @@ export default function LocalityPage({ params }: { params: { slug: string } }) {
 
   const props = propertiesByLocality(params.slug);
 
+  // Build the list of localities to pass to the switcher.
+  // Just slug + name — keeps the prop surface tiny.
+  const allLocalities = localities.map((l) => ({ slug: l.slug, name: l.name }));
+
   return (
     <>
       <Header />
       <main className="pt-[100px] lg:pt-[110px] pb-12">
-        {/* Breadcrumb + locality header */}
         <div className="container-x">
           <nav className="meta text-slate mb-4">
             <Link href="/" className="hover:text-gold-hover">Home</Link>
@@ -38,13 +41,18 @@ export default function LocalityPage({ params }: { params: { slug: string } }) {
               </h1>
             </div>
             <div className="meta text-slate">
-              Starting from <strong className="text-navy font-semibold">{locality.from}</strong> ·
+              Starting from <strong className="text-navy font-semibold">{locality.from}</strong> &middot;
               {` ${locality.count} properties listed`}
             </div>
           </div>
         </div>
 
-        <LocalityListings localityName={locality.name} properties={props} />
+        <LocalityListings
+          localityName={locality.name}
+          localitySlug={locality.slug}
+          allLocalities={allLocalities}
+          properties={props}
+        />
       </main>
       <Footer />
       <WhatsAppFloat />

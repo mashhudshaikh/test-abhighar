@@ -1,7 +1,7 @@
 export const localities = [
   { slug: "aundh",    name: "Aundh",         count: 54,  from: "₹1.4 Cr", tag: "Old-World Charm",   image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=800&q=80" },
   { slug: "baner",    name: "Baner",         count: 98,  from: "₹1.2 Cr", tag: "Premium Living",    image: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=800&q=80" },
-  { slug: "hinjwadi", name: "Hinjewadi",     count: 142, from: "₹65L",    tag: "IT Corridor",       image: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80" },
+  { slug: "hinjewadi", name: "Hinjewadi",     count: 142, from: "₹65L",    tag: "IT Corridor",       image: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80" },
   { slug: "kharadi",  name: "Kharadi",       count: 61,  from: "₹85L",    tag: "Riverside Calm",    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80" },
   { slug: "koregaon", name: "Koregaon Park", count: 76,  from: "₹2.5 Cr", tag: "Heritage Luxe",     image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" },
   { slug: "wakad",    name: "Wakad",         count: 88,  from: "₹70L",    tag: "Family Favourite",  image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=800&q=80" },
@@ -24,6 +24,7 @@ export const advisors = [
     image: "/advisors/sarika-k.jpg"
   },
   {
+  
     name: "Kedar Naik",
     role: "Regional Sales Manager",
     exp: "11 yrs",
@@ -324,7 +325,7 @@ export const properties: Property[] = [
     slug: "kolte-patil-itowers",
     name: "Kolte Patil iTowers",
     builder: "Kolte Patil",
-    localitySlug: "hinjwadi",
+    localitySlug: "hinjewadi",
     localityArea: "Hinjwadi Phase I, Pune",
     status: "ready",
     bhkRange: "2, 3, 4 BHK",
@@ -356,7 +357,7 @@ export const properties: Property[] = [
   }),
   P({
     slug: "mahindra-nestalgia", name: "Mahindra Nestalgia", builder: "Mahindra Lifespaces",
-    localitySlug: "hinjwadi", localityArea: "Hinjwadi, Pune", status: "under-construction",
+    localitySlug: "hinjewadi", localityArea: "Hinjwadi, Pune", status: "under-construction",
     bhkRange: "2, 3 BHK", bhkOptions: [2, 3], areaMin: "780 sqft min",
     possessionLabel: "Possession 2027", possessionYear: 2027,
     priceDisplay: "₹ 67 L – 95 L", priceMin: 67, priceMax: 95,
@@ -369,7 +370,7 @@ export const properties: Property[] = [
   }),
   P({
     slug: "vtp-solitaire", name: "VTP Solitaire", builder: "VTP Realty",
-    localitySlug: "hinjwadi", localityArea: "Hinjwadi Phase III, Pune", status: "ready",
+    localitySlug: "hinjewadi", localityArea: "Hinjwadi Phase III, Pune", status: "ready",
     bhkRange: "2, 3 BHK", bhkOptions: [2, 3], areaMin: "860 sqft min",
     possessionLabel: "Possession 2025", possessionYear: 2025,
     priceDisplay: "₹ 75 L – 1.2 Cr", priceMin: 75, priceMax: 120,
@@ -382,7 +383,7 @@ export const properties: Property[] = [
   }),
   P({
     slug: "paranjape-athashri", name: "Paranjape Athashri", builder: "Paranjape Schemes",
-    localitySlug: "hinjwadi", localityArea: "Hinjwadi, Pune", status: "ready",
+    localitySlug: "hinjewadi", localityArea: "Hinjwadi, Pune", status: "ready",
     bhkRange: "2, 3 BHK", bhkOptions: [2, 3], areaMin: "980 sqft min",
     possessionLabel: "Possession 2024", possessionYear: 2024,
     priceDisplay: "₹ 90 L – 1.5 Cr", priceMin: 90, priceMax: 150,
@@ -395,7 +396,7 @@ export const properties: Property[] = [
   }),
   P({
     slug: "kumar-princetown", name: "Kumar Princetown", builder: "Kumar Properties",
-    localitySlug: "hinjwadi", localityArea: "Hinjwadi, Pune", status: "under-construction",
+    localitySlug: "hinjewadi", localityArea: "Hinjwadi, Pune", status: "under-construction",
     bhkRange: "2, 3, 4 BHK", bhkOptions: [2, 3, 4], areaMin: "920 sqft min",
     possessionLabel: "Possession 2026", possessionYear: 2026,
     priceDisplay: "₹ 80 L – 1.6 Cr", priceMin: 80, priceMax: 160,
@@ -409,7 +410,7 @@ export const properties: Property[] = [
   }),
   P({
     slug: "rohan-upavan", name: "Rohan Upavan", builder: "Rohan Builders",
-    localitySlug: "hinjwadi", localityArea: "Hinjwadi, Pune", status: "ready",
+    localitySlug: "hinjewadi", localityArea: "Hinjwadi, Pune", status: "ready",
     bhkRange: "2, 3 BHK", bhkOptions: [2, 3], areaMin: "840 sqft min",
     possessionLabel: "Possession 2025", possessionYear: 2025,
     priceDisplay: "₹ 72 L – 1.1 Cr", priceMin: 72, priceMax: 110,
@@ -422,7 +423,7 @@ export const properties: Property[] = [
   }),
   P({
     slug: "pride-purple-park-titan", name: "Pride Purple Park Titan", builder: "Pride Purple",
-    localitySlug: "hinjwadi", localityArea: "Hinjwadi, Pune", status: "under-construction",
+    localitySlug: "hinjewadi", localityArea: "Hinjwadi, Pune", status: "under-construction",
     bhkRange: "1, 2 BHK", bhkOptions: [1, 2], areaMin: "610 sqft min",
     possessionLabel: "Possession 2027", possessionYear: 2027,
     priceDisplay: "₹ 49 L – 78 L", priceMin: 49, priceMax: 78,

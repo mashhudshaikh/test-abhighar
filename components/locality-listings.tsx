@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Property } from "@/lib/data";
 import PropertyCard from "./property-card";
 
-// — Property type config (mirrors hero) —
 type PropertyTypeKey = "Apartment" | "Villa" | "Duplex" | "Plot" | "Studio" | "Commercial";
 
 const PROPERTY_TYPE_OPTIONS: PropertyTypeKey[] = ["Apartment", "Villa", "Duplex", "Plot", "Studio", "Commercial"];
@@ -53,13 +53,24 @@ function bhkFromLabel(label: string): number | null {
   return m ? parseInt(m[1], 10) : null;
 }
 
+// — Locality switcher needs to know all available localities to build the list.
+//   This list mirrors `localities` in lib/data.ts. If you'd rather single-source it,
+//   pass it as a prop from the page (see the page.tsx update).
+type LocalityOption = { slug: string; name: string };
+
 export default function LocalityListings({
   localityName,
+  localitySlug,
+  allLocalities,
   properties,
 }: {
   localityName: string;
+  localitySlug: string;
+  allLocalities: LocalityOption[];
   properties: Property[];
 }) {
+  const router = useRouter();
+
   const [propertyType, setPropertyType] = useState<PropertyTypeKey>("Apartment");
   const [typeSubChoice, setTypeSubChoice] = useState<string>("Any");
   const [priceMin, setPriceMin] = useState(PRICE_MIN_BOUND);
@@ -108,6 +119,13 @@ export default function LocalityListings({
     setPropertyType(next);
     setTypeSubChoice("Any");
     setOpenPill(null);
+  };
+
+  // Navigate to another locality's page when user selects a different one
+  const handleLocalityChange = (slug: string) => {
+    setOpenPill(null);
+    if (slug === localitySlug) return; // same page, no nav
+    router.push("/localities/" + slug);
   };
 
   const currentTypeConfig = PROPERTY_TYPE_CONFIG[propertyType];
@@ -166,9 +184,17 @@ export default function LocalityListings({
       <div ref={filterBarRef} className="mb-6 sm:mb-7">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4">
           <div className="flex items-center gap-2 overflow-x-auto -mx-3 px-3 pb-1 lg:pb-0 lg:overflow-visible lg:flex-wrap lg:mx-0 lg:px-0 no-scrollbar">
-            <span className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-pill bg-navy text-white text-[12px] sm:text-[13px] font-semibold shrink-0">
-              1 locality
-            </span>
+
+            {/* Locality switcher pill — replaces the old static "1 locality" badge */}
+            <LocalityPill
+              id="locality"
+              openPill={openPill}
+              togglePill={togglePill}
+              currentName={localityName}
+              currentSlug={localitySlug}
+              allLocalities={allLocalities}
+              onChange={handleLocalityChange}
+            />
 
             <Pill id="propertyType" openPill={openPill} togglePill={togglePill} label="Type" value={propertyType}>
               {PROPERTY_TYPE_OPTIONS.map((v) => (
@@ -271,6 +297,245 @@ export default function LocalityListings({
   );
 }
 
+// ━━━ LOCALITY SWITCHER PILL ━━━
+// Looks similar to the navy "1 locality" badge but is interactive.
+// Searchable dropdown lists all localities. Selecting one navigates to that
+// locality's page via router.push. Same desktop+mobile patterns as the
+// generic Pill component (desktop popup, mobile bottom sheet).
+function LocalityPill({
+  id,
+  openPill,
+  togglePill,
+  currentName,
+  currentSlug,
+  allLocalities,
+  onChange,
+}: {
+  id: string;
+  openPill: string | null;
+  togglePill: (id: string) => void;
+  currentName: string;
+  currentSlug: string;
+  allLocalities: LocalityOption[];
+  onChange: (slug: string) => void;
+}) {
+  const isOpen = openPill === id;
+  const [query, setQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setQuery("");
+      return;
+    }
+    if (typeof window === "undefined") return;
+    const isFinePointer = window.matchMedia("(pointer: fine)").matches;
+    if (isFinePointer && searchInputRef.current) {
+      const t = setTimeout(() => searchInputRef.current?.focus(), 50);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen]);
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return allLocalities;
+    const q = query.trim().toLowerCase();
+    return allLocalities.filter((l) => l.name.toLowerCase().includes(q));
+  }, [query, allLocalities]);
+
+  return (
+    <>
+      <div className="relative shrink-0">
+        <button
+          type="button"
+          onClick={() => togglePill(id)}
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          className={"inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 rounded-pill text-[12px] sm:text-[13px] font-semibold transition-colors whitespace-nowrap " + (isOpen ? "bg-navy text-white shadow-card ring-2 ring-gold/40" : "bg-navy text-white hover:bg-navy-80")}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          <span className="hidden sm:inline">{currentName}</span>
+          <span className="sm:hidden">{currentName.length > 12 ? currentName.slice(0, 11) + "…" : currentName}</span>
+          <span className={"text-white/70 transition-transform duration-200 " + (isOpen ? "rotate-180" : "")} aria-hidden>
+            &#9662;
+          </span>
+        </button>
+
+        {/* Desktop dropdown */}
+        {isOpen && (
+          <div className="hidden sm:flex flex-col absolute top-full left-0 mt-2 z-30 min-w-[260px] bg-white border border-navy/10 rounded-card shadow-card overflow-hidden">
+            <div className="relative shrink-0 border-b border-navy/8 px-3 py-2.5 bg-ivory/40">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-navy/40 pointer-events-none"
+                aria-hidden
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Switch to another locality..."
+                className="w-full pl-7 pr-8 py-1.5 bg-white border border-navy/10 rounded-lg text-[13px] font-sans font-medium text-navy placeholder:text-navy/40 outline-none focus:border-gold focus:ring-2 focus:ring-gold/15 transition-colors"
+                aria-label="Search localities"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    searchInputRef.current?.focus();
+                  }}
+                  aria-label="Clear search"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-navy/10 hover:bg-navy/20 text-navy/70 grid place-items-center transition-colors"
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            <ul role="listbox" className="max-h-[220px] overflow-y-auto py-1.5">
+              {filtered.length === 0 ? (
+                <li className="px-4 py-5 text-center text-[13px] font-sans font-medium text-slate">
+                  <div className="text-navy/50 mb-1">No matches found</div>
+                  <div className="text-[11.5px] text-slate/70">Try a different keyword</div>
+                </li>
+              ) : (
+                filtered.map((l) => {
+                  const isCurrent = l.slug === currentSlug;
+                  return (
+                    <li key={l.slug} role="option" aria-selected={isCurrent}>
+                      <button
+                        type="button"
+                        onClick={() => onChange(l.slug)}
+                        className={"w-full text-left px-4 py-2.5 text-[14px] font-sans font-semibold transition-colors flex items-center justify-between gap-2 " + (isCurrent ? "bg-gold/10 text-gold-hover" : "text-navy hover:bg-ivory")}
+                      >
+                        {query.trim() ? <HighlightedText text={l.name} query={query} /> : <span>{l.name}</span>}
+                        {isCurrent && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })
+              )}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile bottom-sheet */}
+      {isOpen && (
+        <div className="sm:hidden">
+          <div
+            onClick={() => togglePill(id)}
+            aria-hidden
+            className="fixed inset-0 z-[80] bg-navy/40 backdrop-blur-sm animate-fade-in"
+          />
+          <div className="fixed inset-x-0 bottom-0 z-[90] bg-white rounded-t-[24px] shadow-[0_-12px_40px_hsl(var(--navy)/0.20)] animate-slide-up max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-navy/8 shrink-0">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-gold-hover mb-0.5">Switch to</div>
+                <div className="font-sans font-bold text-[17px] text-navy">Locality</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => togglePill(id)}
+                aria-label="Close"
+                className="w-9 h-9 rounded-full text-navy hover:bg-navy/5 grid place-items-center"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="px-5 pt-3 pb-2 shrink-0">
+              <div className="relative">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-navy/40 pointer-events-none"
+                  aria-hidden
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search localities..."
+                  className="w-full pl-9 pr-3 py-2.5 bg-ivory/60 border border-navy/10 rounded-lg text-[14px] font-sans font-medium text-navy placeholder:text-navy/40 outline-none focus:border-gold focus:ring-2 focus:ring-gold/15 transition-colors"
+                  aria-label="Search localities"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-y-auto p-2.5 pt-1">
+              {filtered.length === 0 ? (
+                <div className="px-4 py-8 text-center text-[14px] font-sans font-medium text-slate">
+                  <div className="text-navy/50 mb-1">No matches found</div>
+                  <div className="text-[12px] text-slate/70">Try a different keyword</div>
+                </div>
+              ) : (
+                filtered.map((l) => {
+                  const isCurrent = l.slug === currentSlug;
+                  return (
+                    <button
+                      key={l.slug}
+                      type="button"
+                      onClick={() => onChange(l.slug)}
+                      className={"w-full text-left px-4 py-3 rounded-btn text-[14px] font-medium transition-colors flex items-center justify-between " + (isCurrent ? "bg-gold text-white" : "text-navy hover:bg-ivory")}
+                    >
+                      {query.trim() ? <HighlightedText text={l.name} query={query} /> : <span>{l.name}</span>}
+                      {isCurrent && (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <style jsx>{`
+            @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+            @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+            .animate-fade-in { animation: fadeIn 0.2s ease-out; }
+            .animate-slide-up { animation: slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1); }
+          `}</style>
+        </div>
+      )}
+    </>
+  );
+}
+
 function Pill({
   id,
   openPill,
@@ -363,6 +628,23 @@ function Opt({ active, onClick, children }: { active: boolean; onClick: () => vo
     >
       {children}
     </button>
+  );
+}
+
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  const q = query.trim().toLowerCase();
+  const lower = text.toLowerCase();
+  const idx = lower.indexOf(q);
+  if (idx === -1) return <span>{text}</span>;
+  const before = text.slice(0, idx);
+  const match = text.slice(idx, idx + q.length);
+  const after = text.slice(idx + q.length);
+  return (
+    <span>
+      {before}
+      <mark className="bg-gold/25 text-navy font-extrabold rounded px-0.5 not-italic">{match}</mark>
+      {after}
+    </span>
   );
 }
 

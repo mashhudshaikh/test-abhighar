@@ -67,7 +67,7 @@ export default function PropertyCard({ property: p, compact = false }: { propert
           </Link>
           
           <a
-            href={`https://wa.me/919800000234?text=${encodeURIComponent(`Hi, I'm interested in ${p.name}`)}`}
+            href={`https://wa.me/919890122755?text=${encodeURIComponent(`Hi, I'm interested in ${p.name}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="WhatsApp enquiry"
