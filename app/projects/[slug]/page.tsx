@@ -86,8 +86,8 @@ const quickFacts = [
                   <span className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-pill bg-success/10 text-success border border-success/30 text-[11.5px] sm:text-[12px] font-semibold">
                     <span aria-hidden="true">RERA Verified</span> 
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-pill bg-white text-slate border border-navy/12 text-[11.5px] sm:text-[12px] font-semibold tnum">
-                    RERA: {p.rera}
+                  <span className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-pill bg-success/10 text-success border border-success/30 text-[11.5px] sm:text-[12px] font-semibold">
+                    Zero Brokerage
                   </span>
                 </div>
 

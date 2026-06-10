@@ -10,12 +10,10 @@ const builders = [
   { name: "Kalpataru", src: "/builders/Kalpataru-Ltd.png" },
   { name: "Kasturi", src: "/builders/kasturi.png" },
   { name: "Kohinoor", src: "/builders/kohinoor.png" },
-  { name: "Kolte Patil", src: "/builders/kolte_patil_developers_limited_logo.png" },
   { name: "Lodha Group", src: "/builders/Lodha-group-logo.png" },
   { name: "Mahindra Lifespaces", src: "/builders/Mahindra-Lifespaces.png" },
   { name: "Paranjape Schemes", src: "/builders/Paranjape%20Schemes.png" },
-  { name: "Shapoorji Pallonji", src: "/builders/Shapoorji_Pallonji_Group_logo.svg" },
-  { name: "VTP Reality", src: "/builders/vtp-reality.png" }
+  { name: "Shapoorji Pallonji", src: "/builders/Shapoorji_Pallonji_Group_logo.png" }
 ];
 
 export default function DevLogos() {

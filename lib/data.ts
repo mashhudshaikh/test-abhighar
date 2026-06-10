@@ -15,23 +15,51 @@ export const projects = [
   { slug: "kolte-patil-itowers", name: "Kolte Patil iTowers", location: "Hinjewadi Phase I · Pune", config: "2, 3, 4 BHK", area: "850–1550 sq.ft", possession: "Ready Dec 2024", price: "₹1.1 Cr", badge: "Ready to Move", badgeAlt: false, image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80" },
 ] as const;
 
-export const advisors = [
+// Advisor type — extended with `initials` and `rating` so AdvisorCard can read
+// directly from this array instead of needing a separate hardcoded constant.
+// `slot` lets us pick the right advisor per page-context ("project" vs "interior").
+export type Advisor = {
+  slot: "project" | "interior";
+  name: string;
+  role: string;
+  exp: string;
+  area: string;
+  image: string;
+  initials: string;
+  rating: number;
+};
+
+export const advisors: readonly Advisor[] = [
   {
+    slot: "project",
     name: "Sarika K.",
     role: "Senior Advisor",
     exp: "8 yrs",
     area: "Pune Markets",
-    image: "/advisors/sarika-k.jpg"
+    image: "/advisors/sarika-k.jpg",
+    initials: "SK",
+    rating: 4.9,
   },
   {
-  
+    slot: "interior",
     name: "Kedar Naik",
     role: "Regional Sales Manager",
     exp: "11 yrs",
     area: "Baner & Hinjewadi",
-    image: "/advisors/kedar-naik.jpg"
-  }
+    image: "/advisors/kedar-naik.jpg",
+    initials: "KN",
+    rating: 4.8,
+  },
 ] as const;
+
+// Convenience helpers so other files don't have to know which advisor is at
+// which index. If the page-context advisor isn't present for some reason, we
+// fall back to the first advisor in the array rather than crash.
+export const projectAdvisor: Advisor =
+  advisors.find((a) => a.slot === "project") ?? advisors[0];
+
+export const interiorAdvisor: Advisor =
+  advisors.find((a) => a.slot === "interior") ?? advisors[0];
 
 export const testimonials = [
   { quote: "Aditya's team didn't push us into the most expensive option — they walked us through three Baner societies and explained the trade-offs honestly. We've found our home and a long-term advisor.", name: "Priya & Rohit Kulkarni", initials: "PR", meta: "Lodha Belmondo · Baner" },
@@ -185,7 +213,15 @@ const NEARBY_WAKAD = [
   { place: "Mumbai-Pune Highway",  distance: "1.5 km · 5 min" },
 ];
 
-const STD_ADVISOR = { initials: "RM", name: "Riya Mehta", role: "Senior Advisor", rating: 4.9 };
+// STD_ADVISOR now reads from the canonical `advisors` array (Sarika as the
+// project-side advisor) instead of a hardcoded "Riya Mehta" constant. To
+// change which advisor shows on project pages, edit the `advisors` array above.
+const STD_ADVISOR = {
+  initials: projectAdvisor.initials,
+  name: projectAdvisor.name,
+  role: projectAdvisor.role,
+  rating: projectAdvisor.rating,
+};
 
 function P(p: Partial<Property> & Pick<Property,
   "slug" | "name" | "builder" | "localitySlug" | "localityArea" | "status"

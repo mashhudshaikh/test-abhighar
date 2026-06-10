@@ -7,17 +7,20 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 import WhatsAppFloat from "@/components/whatsapp-float";
 import Reveal from "@/components/ui/reveal";
-import { interiorCategories, Property } from "@/lib/data";
+import { interiorCategories, interiorAdvisor, Property } from "@/lib/data";
 import LeadGate from "@/components/lead-gate";
 import AdvisorCard from "@/components/advisor-card";
 import AdvisorModal from "@/components/advisor-modal";
 
+// Pull the interior-side advisor from lib/data.ts instead of hardcoding here.
+// Editing `interiorAdvisor` in data.ts is now the single way to change who
+// shows up on this page — no need to touch the component.
 const INTERIORS_ADVISOR_DATA = {
   advisor: {
-    initials: "MJ",
-    name: "Meera Joshi",
-    role: "Senior Interior Designer",
-    rating: 4.9,
+    initials: interiorAdvisor.initials,
+    name: interiorAdvisor.name,
+    role: interiorAdvisor.role,
+    rating: interiorAdvisor.rating,
   },
 } as unknown as Property;
 

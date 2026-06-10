@@ -247,15 +247,13 @@ export default function Hero() {
                   <SearchField id="propertyType" label="Property Type" value={propertyType} onChange={handlePropertyTypeChange} options={PROPERTY_TYPE_OPTIONS as unknown as string[]} openField={openField} setOpenField={setOpenField} />
 
                   <SearchField
-                    id="locality"
-                    label="Locality"
-                    value={locality}
-                    onChange={setLocality}
-                    options={LOCALITY_OPTIONS}
+                    id="typeSubChoice"
+                    label={currentTypeConfig.label}
+                    value={typeSubChoice}
+                    onChange={setTypeSubChoice}
+                    options={currentTypeConfig.options}
                     openField={openField}
                     setOpenField={setOpenField}
-                    searchable
-                    searchPlaceholder="Search Pune localities..."
                   />
 
                   <BudgetField
@@ -270,14 +268,18 @@ export default function Hero() {
                   />
 
                   <SearchField
-                    id="typeSubChoice"
-                    label={currentTypeConfig.label}
-                    value={typeSubChoice}
-                    onChange={setTypeSubChoice}
-                    options={currentTypeConfig.options}
+                    id="locality"
+                    label="Locality"
+                    value={locality}
+                    onChange={setLocality}
+                    options={LOCALITY_OPTIONS}
                     openField={openField}
                     setOpenField={setOpenField}
+                    searchable
+                    searchPlaceholder="Search Pune localities..."
                   />
+
+                  
 
                   <SearchField id="possession" label="Possession" value={possession} onChange={setPossession} options={["New Launch", "Under Construction", "Nearing Possession", "Ready to Move"]} openField={openField} setOpenField={setOpenField} last />
                 </div>

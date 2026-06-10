@@ -86,10 +86,10 @@ export default function MobileMenu({
 
           <div className="mt-6 pt-6 border-t border-navy/10">
             <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-gold-hover mb-3">Get in touch</div>
-            <a href="tel:+919800000234" onClick={onClose} className="flex items-center gap-2.5 px-4 py-3 rounded-card text-navy font-sans font-medium text-[14px] hover:bg-white transition-colors">
-              <span aria-hidden>&#9742;</span> +91 98XXX XX234
+            <a href="tel:+919890122755" onClick={onClose} className="flex items-center gap-2.5 px-4 py-3 rounded-card text-navy font-sans font-medium text-[14px] hover:bg-white transition-colors">
+              <span aria-hidden>&#9742;</span> +91 98901 22755
             </a>
-            <a href="https://wa.me/919800000234" target="_blank" rel="noopener noreferrer" onClick={onClose} className="flex items-center gap-2.5 px-4 py-3 rounded-card text-navy font-sans font-medium text-[14px] hover:bg-white transition-colors">
+            <a href="https://wa.me/919890122755" target="_blank" rel="noopener noreferrer" onClick={onClose} className="flex items-center gap-2.5 px-4 py-3 rounded-card text-navy font-sans font-medium text-[14px] hover:bg-white transition-colors">
               <span aria-hidden>&#128172;</span> WhatsApp us
             </a>
           </div>
