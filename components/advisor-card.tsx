@@ -21,6 +21,9 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
   function submit(e: FormEvent) {
     e.preventDefault();
     if (!name.trim() || phone.length !== 10) return;
+    // When WhatsApp differs from the phone number, it's mandatory and must
+    // be a complete 10-digit number — block submission otherwise.
+    if (!sameAsWhatsApp && whatsapp.length !== 10) return;
     setSent(true);
 
     try {
@@ -56,13 +59,20 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
     ? "e.g. preferred style, must-have features, timeline"
     : "e.g. corner unit availability, possession, EMI options";
 
+  // Single source of truth for "is the form submittable right now". Mirrors the
+  // submit() guard so the CTA button can visibly disable when fields are missing.
+  const formValid =
+    name.trim().length > 0 &&
+    phone.length === 10 &&
+    (sameAsWhatsApp || whatsapp.length === 10);
+
   return (
-    <aside className="bg-navy text-white rounded-card p-6">
-      <div className="flex items-center gap-3 pb-5 mb-6 border-b border-white/10">
-        <div className="w-11 h-11 rounded-full bg-gold text-white grid place-items-center font-sans font-bold text-[14px] shrink-0">{advisor.initials}</div>
+    <aside className="bg-navy text-white rounded-card p-5">
+      <div className="flex items-center gap-3 pb-3 mb-4 border-b border-white/10">
+        <div className="w-10 h-10 rounded-full bg-gold text-white grid place-items-center font-sans font-bold text-[13px] shrink-0">{advisor.initials}</div>
         <div>
-          <div className="font-sans font-semibold text-[15px]">{advisor.name}</div>
-          <div className="meta text-white/65 inline-flex items-center gap-1">
+          <div className="font-sans font-semibold text-[14px] leading-tight">{advisor.name}</div>
+          <div className="meta text-white/65 inline-flex items-center gap-1 leading-tight mt-0.5">
             {advisor.role}
             <span className="mx-1 text-white/35">&middot;</span>
             <span className="text-gold" aria-hidden>&#9733;</span>
@@ -71,8 +81,8 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
         </div>
       </div>
 
-      <h3 className="font-sans font-bold text-[22px] text-white mb-1.5 tracking-tight">{heading}</h3>
-      <p className="meta text-white/65 mb-6">{subheading}</p>
+      <h3 className="font-sans font-bold text-[19px] text-white mb-1 tracking-tight leading-tight">{heading}</h3>
+      <p className="meta text-white/65 mb-4">{subheading}</p>
 
       {sent ? (
         <div className="rounded-panel bg-success/20 border border-success/40 p-5 text-center">
@@ -86,20 +96,20 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
           <div className="meta text-gold font-semibold">&check; Full details unlocked below</div>
         </div>
       ) : (
-        <form onSubmit={submit} className="flex flex-col gap-4">
+        <form onSubmit={submit} className="flex flex-col gap-2.5">
           <Field label="Full Name">
             <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="ad-input" autoComplete="name" />
           </Field>
 
           <Field label="Phone Number">
             <div className="ad-input flex items-center gap-2 py-0">
-              <span className="text-white/55 select-none text-[14.5px] tnum">+91</span>
+              <span className="text-white/55 select-none text-[14px] tnum">+91</span>
               <input
                 type="tel" required inputMode="numeric" maxLength={10}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 placeholder="98XXX XXXXX"
-                className="bg-transparent flex-1 outline-none py-3 tnum text-[14.5px]"
+                className="bg-transparent flex-1 outline-none py-2.5 tnum text-[14px]"
                 autoComplete="tel-national"
               />
             </div>
@@ -113,13 +123,14 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
           {!sameAsWhatsApp && (
             <Field label="WhatsApp Number">
               <div className="ad-input flex items-center gap-2 py-0">
-                <span className="text-white/55 select-none text-[14.5px] tnum">+91</span>
+                <span className="text-white/55 select-none text-[14px] tnum">+91</span>
                 <input
-                  type="tel" inputMode="numeric" maxLength={10}
+                  type="tel" required inputMode="numeric" maxLength={10}
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, "").slice(0, 10))}
                   placeholder="98XXX XXXXX"
-                  className="bg-transparent flex-1 outline-none py-3 tnum text-[14.5px]"
+                  className="bg-transparent flex-1 outline-none py-2.5 tnum text-[14px]"
+                  autoComplete="tel-national"
                 />
               </div>
             </Field>
@@ -135,15 +146,19 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              rows={3}
+              rows={2}
               placeholder={messagePlaceholder}
               className="ad-input resize-none leading-relaxed"
             />
           </Field>
 
-          <button type="submit" className="mt-2 h-12 rounded-pill bg-gold text-white font-sans font-semibold shadow-cta hover:bg-gold-hover transition-colors">{primaryCTA}</button>
+          <button
+            type="submit"
+            disabled={!formValid}
+            className="mt-1 h-11 rounded-pill bg-gold text-white font-sans font-semibold shadow-cta hover:bg-gold-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gold"
+          >{primaryCTA}</button>
 
-          <div className="mt-3 pt-4 border-t border-white/10 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 meta text-white/55 text-center">
+          <div className="mt-2 pt-3 border-t border-white/10 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 meta text-white/55 text-center text-[11px]">
             <span className="inline-flex items-center gap-1.5"><span aria-hidden>&#128293;</span> 12 enquiries today</span>
             <span className="text-white/30" aria-hidden>&middot;</span>
             <span className="inline-flex items-center gap-1.5"><span aria-hidden>&#9201;</span> Avg response 18 min</span>
@@ -158,9 +173,9 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
           background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.12);
           border-radius: 10px;
-          padding: 12px 14px;
+          padding: 9px 12px;
           font-family: var(--font-inter), system-ui, sans-serif;
-          font-size: 14.5px;
+          font-size: 14px;
           color: white;
           outline: none;
           transition: border-color 0.25s, background 0.25s;
@@ -172,7 +187,7 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
           background: rgba(255, 255, 255, 0.08);
         }
         select.ad-input option { color: hsl(var(--navy)); background: white; }
-        textarea.ad-input { min-height: 84px; }
+        textarea.ad-input { min-height: 56px; }
       `}</style>
     </aside>
   );
