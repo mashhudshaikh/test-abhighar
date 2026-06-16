@@ -5,17 +5,25 @@ import { useRouter } from "next/navigation";
 import { Property } from "@/lib/data";
 import PropertyCard from "./property-card";
 
-type PropertyTypeKey = "Apartment" | "Villa" | "Duplex" | "Plot" | "Studio" | "Commercial";
+// FIXED: "Studio Apartment" needs its own closing quote, then the pipe, then
+// the next option starts with its own opening quote. Previously this was
+// written as `"Studio Apartment | "Commercial"` which TypeScript read as a
+// single unterminated string literal "Studio Apartment | " followed by a
+// loose identifier `Commercial`.
+type PropertyTypeKey = "Apartment" | "Villa" | "Duplex" | "Plot" | "Studio Apartment" | "Commercial";
 
-const PROPERTY_TYPE_OPTIONS: PropertyTypeKey[] = ["Apartment", "Villa", "Duplex", "Plot", "Studio", "Commercial"];
+const PROPERTY_TYPE_OPTIONS: PropertyTypeKey[] = ["Apartment", "Villa", "Duplex", "Plot", "Studio Apartment", "Commercial"];
 
 const PROPERTY_TYPE_CONFIG: Record<PropertyTypeKey, { label: string; options: string[] }> = {
-  Apartment:  { label: "BHK",        options: ["Any", "1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
-  Villa:      { label: "BHK",        options: ["Any", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
-  Duplex:     { label: "BHK",        options: ["Any", "3 BHK", "4 BHK", "5 BHK", "6+ BHK"] },
-  Plot:       { label: "Listing",    options: ["Any", "Buy", "Lease"] },
-  Studio:     { label: "Config",     options: ["Any", "1 RK"] },
-  Commercial: { label: "Space Type", options: ["Any", "Showroom", "Shop", "Office Space", "Lease"] },
+  Apartment:           { label: "BHK",        options: ["Any", "1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
+  Villa:               { label: "BHK",        options: ["Any", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
+  Duplex:              { label: "BHK",        options: ["Any", "3 BHK", "4 BHK", "5 BHK", "6+ BHK"] },
+  Plot:                { label: "Listing",    options: ["Any", "Buy", "Lease"] },
+  // FIXED: Object keys containing whitespace must be quoted. The bare
+  // `Studio Apartment:` was being parsed as shorthand property `Studio`
+  // followed by a stray `Apartment` identifier, hence the cascade of errors.
+  "Studio Apartment":  { label: "Config",     options: ["Any", "1 RK"] },
+  Commercial:          { label: "Space Type", options: ["Any", "Showroom", "Shop", "Office Space", "Lease"] },
 };
 
 type Possession = "all" | "new-launch" | "under-construction" | "nearing" | "ready";

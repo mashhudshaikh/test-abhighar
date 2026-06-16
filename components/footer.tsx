@@ -8,6 +8,13 @@ const SOCIALS = [
   { label: "YouTube",   short: "YT", href: "https://youtube.com/@abhighar" },
 ];
 
+// Items that should open in a new browser tab when clicked. Centralised here
+// so any footer column can opt items in by passing the same label through
+// `externalItems` (see Quick Links below). Keeping the list separate from
+// the columns themselves means a future "open Terms in new tab in the
+// header too" doesn't require copying logic — it just imports this set.
+const EXTERNAL_QUICK_LINKS = new Set(["Terms", "Privacy Policy"]);
+
 function mapFooterHref(col: string, item: string): string {
   if (col === "Locations") {
     const m: Record<string, string> = {
@@ -31,13 +38,30 @@ function mapFooterHref(col: string, item: string): string {
       "EMI Calculator":  "/#tools",
       "About Us":        "/#contact",
       "Contact":         "/#contact",
+      // Legal pages — rendered with target="_blank" by FooterCol when the
+      // item label is also in EXTERNAL_QUICK_LINKS.
+      "Terms":           "/terms-of-use",
+      "Privacy Policy":  "/privacy-policy",
     };
     return m[item] || "/";
   }
   return "/";
 }
 
-function FooterCol({ title, items, plain }: { title: string; items: string[]; plain?: boolean }) {
+function FooterCol({
+  title,
+  items,
+  plain,
+  externalItems,
+}: {
+  title: string;
+  items: string[];
+  plain?: boolean;
+  // Optional set of item labels that should open in a new tab. Items not
+  // in the set fall back to the normal in-page Next <Link> behaviour, so
+  // existing columns don't need to change to opt in.
+  externalItems?: Set<string>;
+}) {
   return (
     <div>
       <h4 className="font-sans font-semibold text-[15px] text-ivory mb-5 flex items-center gap-2.5 tracking-tight">
@@ -49,9 +73,34 @@ function FooterCol({ title, items, plain }: { title: string; items: string[]; pl
           if (plain) {
             return <li key={it} className="body-base text-ivory/70">{it}</li>;
           }
+          const href = mapFooterHref(title, it);
+          const isExternal = externalItems?.has(it) ?? false;
+          // External items use a plain <a> with target="_blank" so they
+          // open in a new tab; the Next <Link> wrapper wouldn't add that
+          // attribute. rel="noopener noreferrer" is the standard pair to
+          // prevent the new tab from being able to navigate the opener.
+          if (isExternal) {
+            return (
+              <li key={it}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="body-base text-ivory/70 inline-block transition-all duration-300 hover:text-gold hover:pl-1.5"
+                >
+                  {it}
+                </a>
+              </li>
+            );
+          }
           return (
             <li key={it}>
-              <Link href={mapFooterHref(title, it)} className="body-base text-ivory/70 inline-block transition-all duration-300 hover:text-gold hover:pl-1.5">{it}</Link>
+              <Link
+                href={href}
+                className="body-base text-ivory/70 inline-block transition-all duration-300 hover:text-gold hover:pl-1.5"
+              >
+                {it}
+              </Link>
             </li>
           );
         })}
@@ -87,7 +136,7 @@ export default function Footer() {
             <div className="flex items-center gap-3.5 p-4 rounded-card bg-ivory/6 border border-ivory/10 max-w-[380px] mb-5">
               <div className="w-12 h-12 rounded-full bg-gold text-white grid place-items-center font-sans font-bold text-[14px] shadow-cta">SK</div>
               <div>
-                <div className="font-sans font-semibold text-[17px] text-ivory tracking-tight">Sarika K.</div>
+                <div className="font-sans font-semibold text-[17px] text-ivory tracking-tight">Sarika </div>
                 <div className="meta text-ivory/60">Senior Advisor</div>
               </div>
             </div>
@@ -103,8 +152,12 @@ export default function Footer() {
           </div>
 
           <FooterCol title="Locations" items={["Hinjewadi","Baner","Kharadi","Wakad","Aundh","Koregaon Park","Chinchwad & Akurdi","Hadapsar"]} />
-          <FooterCol title="Quick Links" items={["All Projects","New Launches","Ready to Move","Interior Design","EMI Calculator","About Us","Contact"]} />
-          <FooterCol title="Reach Us" items={["Pune","+91 9890122755","hello@abhighar.in","Mon – Sat · 10 AM – 8 PM"]} plain />
+          <FooterCol
+            title="Quick Links"
+            items={["All Projects","New Launches","Ready to Move","Interior Design","EMI Calculator","About Us","Contact","Terms","Privacy Policy"]}
+            externalItems={EXTERNAL_QUICK_LINKS}
+          />
+          <FooterCol title="Reach Us" items={["+91 9890122755","+91 9730302843","hello@abhighar.in","Mon – Sun · 10 AM – 8 PM"]} plain />
         </div>
 
         <div className="pt-7 flex justify-between items-center flex-wrap gap-5">

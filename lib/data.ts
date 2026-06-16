@@ -32,7 +32,7 @@ export type Advisor = {
 export const advisors: readonly Advisor[] = [
   {
     slot: "project",
-    name: "Sarika K.",
+    name: "Sarika ",
     role: "Senior Advisor",
     exp: "8 yrs",
     area: "Pune Markets",

@@ -8,6 +8,7 @@ import Interiors from "@/components/interiors";
 import Advisors from "@/components/advisors";
 import Testimonials from "@/components/testimonials";
 import FeedbackForm from "@/components/feedback-form";
+import LatestBlog from "@/components/latest-blog";
 import Footer from "@/components/footer";
 import WhatsAppFloat from "@/components/whatsapp-float";
 import CursorFollower from "@/components/cursor-follower";
@@ -27,9 +28,10 @@ export default function HomePage() {
         <Advisors />
         <Testimonials />
         <FeedbackForm />
+        <LatestBlog />
       </main>
       <Footer />
       <WhatsAppFloat />
     </>
   );
-}
+} 

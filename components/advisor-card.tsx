@@ -11,14 +11,24 @@ interface Props {
 export default function AdvisorCard({ property: p, variant = "project" }: Props) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [sameAsWhatsApp, setSameAsWhatsApp] = useState(true);
+  // CHANGED: Default to false (unchecked). Previously defaulted to true. The
+  // visitor explicitly opts in to "WhatsApp = same number"; otherwise they
+  // type their WhatsApp number — closer to how Indian users actually treat
+  // these forms and produces cleaner lead data for the admin side.
+  const [sameAsWhatsApp, setSameAsWhatsApp] = useState(false);
   const [whatsapp, setWhatsapp] = useState("");
-  // Config dropdown — only shown for project leads (interior leads aren't
-  // about a specific BHK in the listing). Defaults to "" meaning the user
-  // didn't pick one yet, which is allowed since this is an optional hint
-  // for the advisor, not a hard filter.
-  const [config, setConfig] = useState("");
-  const [intent, setIntent] = useState(variant === "interior" ? "design-consult" : "site-visit");
+  // Config selection — buyers can pick multiple BHK configurations they're
+  // interested in (e.g. "2 BHK" AND "3 BHK" to compare). Empty array means
+  // "no preference yet", matching the old default behaviour. Only shown
+  // for project leads — interior leads don't use this field.
+  const [config, setConfig] = useState<string[]>([]);
+  // CHANGED: Project variant default is now "selfuse" rather than "site-visit"
+  // since the question changed from "Why are you interested?" to "Buying
+  // Purpose". Interior variant unchanged. NOTE TO ADMIN: when the admin
+  // panel's lead-import / lead-creation forms gain similar fields, mirror
+  // these values ("selfuse" / "investment") so customer-side and admin-side
+  // stay aligned.
+  const [intent, setIntent] = useState(variant === "interior" ? "design-consult" : "selfuse");
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
   const { advisor } = p;
@@ -32,6 +42,12 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
     setSent(true);
 
     try {
+      // Storage key is namespaced per property slug — i.e. "lead:lodha-belmondo"
+      // — so a successful submission on one property does NOT unlock other
+      // properties. If a visitor goes from Lodha Belmondo to a Hinjewadi
+      // project, that page's LeadGate looks up "lead:<other-slug>", finds
+      // nothing, stays blurred, and prompts again. That's the intended
+      // behaviour: each property is treated as its own lead.
       const slug = (p as Property & { slug?: string }).slug;
       if (slug) sessionStorage.setItem("lead:" + slug, "1");
       if (variant === "interior") sessionStorage.setItem("lead:interiors", "1");
@@ -46,6 +62,9 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
   const subheading = variant === "interior" ? "Avg designer response: 18 min" : "Avg advisor response: 18 min";
   const primaryCTA = variant === "interior" ? "Book Free Consultation" : "Schedule a Site Visit";
 
+  // CHANGED: Project variant's intent question is now "Buying Purpose" with
+  // only two options (Self Use / Investment). Interior variant retains its
+  // four options since "buying purpose" doesn't apply when hiring a designer.
   const intentOptions = variant === "interior"
     ? [
         { value: "design-consult", label: "Free design consultation" },
@@ -54,11 +73,13 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
         { value: "modular",        label: "Modular kitchen only" },
       ]
     : [
-        { value: "site-visit", label: "Schedule a site visit" },
-        { value: "pricing",    label: "Get the latest pricing" },
-        { value: "brochure",   label: "Just send me the brochure" },
-        { value: "loan",       label: "EMI options consultation" },
+        { value: "selfuse",    label: "Self Use" },
+        { value: "investment", label: "Investment" },
       ];
+
+  // CHANGED: Label key changes with the variant — "Buying Purpose" for the
+  // project form (the new question), "Why are you interested?" for interior.
+  const intentLabel = variant === "interior" ? "Why are you interested?" : "Buying Purpose";
 
   const messagePlaceholder = variant === "interior"
     ? "e.g. preferred style, must-have features, timeline"
@@ -155,22 +176,46 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
             </Field>
           )}
 
-          {/* Config dropdown — project leads only. Pulled from this property's
-              bhkConfigs so the buyer is picking from configs that actually exist.
-              Optional: the first item is a placeholder, and form submission
-              doesn't require a selection. */}
+          {/* Preferred configuration — multi-select chip toggles. Project
+              leads only. Replaces the previous single-select dropdown for
+              two reasons: buyers comparing configs (e.g. 2 vs 3 BHK) shouldn't
+              be forced to pick one, and the "Any configuration" option was
+              also dropped because an empty selection now communicates the
+              same intent. State is a string array; chips toggle their own
+              value via array splice. */}
           {variant === "project" && configOptions.length > 0 && (
             <Field label="Preferred Configuration">
-              <select value={config} onChange={(e) => setConfig(e.target.value)} className="ad-input cursor-pointer">
-                <option value="">Any configuration</option>
-                {configOptions.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <div className="ad-chips flex flex-wrap gap-2">
+                {configOptions.map((opt) => {
+                  const active = config.includes(opt);
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => {
+                        // Toggle membership — add if absent, remove if present.
+                        // Order of selection is preserved (newest at the end)
+                        // so the eventual lead payload reads chronologically.
+                        setConfig((prev) =>
+                          prev.includes(opt) ? prev.filter((c) => c !== opt) : [...prev, opt]
+                        );
+                      }}
+                      aria-pressed={active}
+                      className={"ad-chip" + (active ? " ad-chip-active" : "")}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="ad-chips-hint">Tap one or more — optional</div>
             </Field>
           )}
 
-          <Field label="Why are you interested?">
+          {/* CHANGED: Project variant shows "Buying Purpose" (Self Use /
+              Investment). Interior variant keeps its existing question and
+              options. Label is dynamic via intentLabel. */}
+          <Field label={intentLabel}>
             <select value={intent} onChange={(e) => setIntent(e.target.value)} className="ad-input cursor-pointer">
               {intentOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
@@ -186,22 +231,21 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
             />
           </Field>
 
-          {/* Submit button is part of the form's scrollable region but its own
-              row — `mt-auto` pushes it to the bottom if extra space is available,
-              keeping the layout balanced on tall viewports. */}
+          {/* Submit button. `mt-auto` would push it to the bottom if space
+              exists; with the trust row removed there's typically less
+              vertical slack so the button sits right below the textarea. */}
           <button
             type="submit"
             disabled={!formValid}
             className="ad-submit rounded-pill bg-gold text-white font-sans font-semibold shadow-cta hover:bg-gold-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gold"
           >{primaryCTA}</button>
 
-          <div className="ad-trust border-t border-white/10 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 meta text-white/55 text-center">
-            <span className="inline-flex items-center gap-1.5"><span aria-hidden>&#128293;</span> 12 enquiries today</span>
-            <span className="text-white/30" aria-hidden>&middot;</span>
-            <span className="inline-flex items-center gap-1.5"><span aria-hidden>&#9201;</span> Avg response 18 min</span>
-            <span className="text-white/30" aria-hidden>&middot;</span>
-            <span className="inline-flex items-center gap-1.5"><span aria-hidden>&#128274;</span> Number stays private</span>
-          </div>
+          {/* REMOVED: Trust row ("12 enquiries today · Avg response 18 min ·
+              Number stays private"). The numbers were placeholders that
+              would look dishonest at scale, and the privacy promise belongs
+              in the Privacy Policy footer link rather than asserted under
+              every form. CSS rule .ad-trust below has been retained in case
+              the row is reintroduced — harmless if unused. */}
         </form>
       )}
       </div>
@@ -221,7 +265,6 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
         .ad-subheading { margin-bottom: 1rem; }
         .ad-form { gap: 0.625rem; }
         .ad-submit { height: 2.75rem; margin-top: 0.5rem; }
-        .ad-trust { margin-top: 0.5rem; padding-top: 0.75rem; font-size: 11px; }
 
         .ad-input {
           background: rgba(255, 255, 255, 0.05);
@@ -242,6 +285,49 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
         }
         select.ad-input option { color: hsl(var(--navy)); background: white; }
         textarea.ad-input { min-height: 56px; }
+
+        /* ─── Chip toggle group (preferred-configuration multi-select) ───
+           Each chip is its own button. Inactive chips look like outlined
+           pills, active ones fill with gold. Matches the rounded-pill
+           aesthetic already used elsewhere on the site so the form feels
+           native rather than bolted-on. */
+        .ad-chip {
+          display: inline-flex;
+          align-items: center;
+          padding: 7px 14px;
+          border-radius: 9999px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          color: rgba(255, 255, 255, 0.85);
+          font-family: var(--font-inter), system-ui, sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          line-height: 1;
+          cursor: pointer;
+          transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s;
+          user-select: none;
+        }
+        .ad-chip:hover {
+          background: rgba(255, 255, 255, 0.10);
+          border-color: rgba(255, 255, 255, 0.32);
+        }
+        .ad-chip-active {
+          background: hsl(var(--gold));
+          border-color: hsl(var(--gold));
+          color: white;
+          /* Subtle inset highlight echoes the gold CTA button across the site. */
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 2px 6px hsl(var(--gold) / 0.32);
+        }
+        .ad-chip-active:hover {
+          background: hsl(var(--gold-hover));
+          border-color: hsl(var(--gold-hover));
+        }
+        .ad-chips-hint {
+          margin-top: 6px;
+          font-family: var(--font-inter), system-ui, sans-serif;
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.45);
+        }
 
         /* ─── Desktop: sticky card respects viewport height ───
            At ≥1024px the card is typically sticky in a sidebar — cap its height
@@ -278,15 +364,15 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
           .ad-subheading { margin-bottom: 0.75rem; }
           .ad-form { gap: 0.5rem; }
           .ad-submit { height: 2.5rem; margin-top: 0.375rem; }
-          .ad-trust { margin-top: 0.375rem; padding-top: 0.5rem; font-size: 10.5px; }
           .ad-input { padding: 7px 11px; font-size: 13.5px; }
           textarea.ad-input { min-height: 48px; }
+          /* Match the input-padding shrink so chips stay proportional to
+             the rest of the form on laptop viewports. */
+          .ad-chip { padding: 6px 12px; font-size: 12.5px; }
         }
 
         /* ─── Ultra-compact viewports (≤ 720px tall) — small laptops, zoomed,
               or with the WhatsApp field expanded ───
-           Drop the trust-signal row entirely (it's a nice-to-have, not the
-           transaction). Drop the optional message field's bottom margin.
            Internal scroll on .ad-body becomes the safety net if content
            still exceeds the available space. */
         @media (max-height: 720px) {
@@ -296,7 +382,6 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
           .ad-subheading { margin-bottom: 0.5rem; }
           .ad-form { gap: 0.375rem; }
           .ad-submit { height: 2.375rem; }
-          .ad-trust { display: none; }
           textarea.ad-input { min-height: 40px; }
         }
       `}</style>
