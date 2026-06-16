@@ -34,17 +34,20 @@ const PRICE_TICKS = [
   { value: 1000, label: "10 Cr+", major: true },
 ];
 
-type PropertyTypeKey = "Apartment" | "Villa" | "Duplex" | "Plot" | "Studio" | "Commercial";
+// "Studio Apartment" is the display label across the hero search. Other
+// surfaces (URL slugs, DB enum values) can keep the shorter "studio"
+// internally — that's a separate decision.
+type PropertyTypeKey = "Apartment" | "Villa" | "Duplex" | "Plot" | "Studio Apartment" | "Commercial";
 
-const PROPERTY_TYPE_OPTIONS: PropertyTypeKey[] = ["Apartment", "Villa", "Duplex", "Plot", "Studio", "Commercial"];
+const PROPERTY_TYPE_OPTIONS: PropertyTypeKey[] = ["Apartment", "Villa", "Duplex", "Plot", "Studio Apartment", "Commercial"];
 
 const PROPERTY_TYPE_CONFIG: Record<PropertyTypeKey, { label: string; options: string[] }> = {
-  Apartment:  { label: "BHK",        options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
-  Villa:      { label: "BHK",        options: ["2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
-  Duplex:     { label: "BHK",        options: ["3 BHK", "4 BHK", "5 BHK", "6+ BHK"] },
-  Plot:       { label: "Listing",    options: ["Buy", "Lease"] },
-  Studio:     { label: "Config",     options: ["1 RK"] },
-  Commercial: { label: "Space Type", options: ["Showroom", "Shop", "Office Space", "Lease"] },
+  Apartment:           { label: "BHK",        options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
+  Villa:               { label: "BHK",        options: ["2 BHK", "3 BHK", "4 BHK", "5+ BHK"] },
+  Duplex:              { label: "BHK",        options: ["3 BHK", "4 BHK", "5 BHK", "6+ BHK"] },
+  Plot:                { label: "Listing",    options: ["Buy", "Lease"] },
+  "Studio Apartment":  { label: "Config",     options: ["1 RK"] },
+  Commercial:          { label: "Space Type", options: ["Showroom", "Shop", "Office Space", "Lease"] },
 };
 
 const LOCALITY_OPTIONS = [
@@ -353,7 +356,6 @@ function SearchField({
   const [query, setQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset query when dropdown closes; auto-focus search input on open (desktop only).
   useEffect(() => {
     if (!isOpen) {
       setQuery("");
@@ -368,26 +370,16 @@ function SearchField({
     }
   }, [isOpen, searchable]);
 
-  // Filter options by query (substring, case-insensitive). Memoized so it doesn't
-  // re-run on every parent render (which happens 60x/sec from scroll springs).
   const filteredOptions = useMemo(() => {
     if (!searchable || !query.trim()) return options;
     const q = query.trim().toLowerCase();
     return options.filter((o) => o.toLowerCase().includes(q));
   }, [searchable, query, options]);
 
-  // ━━━ DROPDOWN HEIGHT BUDGET ━━━
-  // The hero's bottom padding now reserves enough space for:
-  //   - searchable dropdown (search input ~48px + list ~180px = ~228px total)
-  //   - non-searchable dropdown (just list ~240px)
-  // The OPTIONS LIST itself caps tighter when the dropdown has a search input
-  // on top of it, so the combined height stays predictable.
   const listMaxHeight = searchable
     ? "max-h-[180px] sm:max-h-[200px]"
     : "max-h-[220px] sm:max-h-[240px]";
 
-  // Dropdown width — wider for searchable fields (need room for the input),
-  // narrower for plain ones. Mobile is always full-width minus margins.
   const dropdownWidth = searchable
     ? "lg:min-w-[260px]"
     : "lg:min-w-[200px]";
@@ -420,7 +412,6 @@ function SearchField({
 
       {isOpen && (
         <div className={"absolute top-full left-2 right-2 sm:left-0 sm:right-0 mt-1.5 z-50 bg-white border border-navy/10 rounded-2xl shadow-[0_20px_50px_hsl(var(--navy)/0.25)] overflow-hidden flex flex-col " + dropdownWidth}>
-          {/* Search input — only shown when searchable=true. Sticks to top of dropdown. */}
           {searchable && (
             <div className="relative shrink-0 border-b border-navy/8 px-3 py-2.5 bg-ivory/40">
               <svg
@@ -466,7 +457,6 @@ function SearchField({
             </div>
           )}
 
-          {/* Options list — scrollable, capped height. */}
           <ul role="listbox" className={"overflow-y-auto py-1.5 " + listMaxHeight}>
             {filteredOptions.length === 0 ? (
               <li className="px-4 py-5 text-center text-[13px] font-sans font-medium text-slate">

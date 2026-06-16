@@ -125,6 +125,23 @@ export const interiors = [
 
 export type Status = "ready" | "under-construction";
 
+// Special offer attached to a project. All fields optional so an existing
+// project without a specialOffer object continues to work. The banner on the
+// project page reads from here; admins manage it from the admin panel's
+// Special Offer wizard step.
+export type SpecialOffer = {
+  enabled?: boolean;
+  badge?: string;
+  title?: string;
+  discount?: string;
+  validUntil?: string;
+  description?: string;
+  // Optional YouTube video link. When present and valid, the OfferBanner on
+  // the project page shows a red YouTube play button. When absent or invalid,
+  // no button renders.
+  youtubeUrl?: string;
+};
+
 export type Property = {
   slug: string;
   name: string;
@@ -155,6 +172,7 @@ export type Property = {
   floors: string;
   litigation: string;
   reraPossession: string;
+  specialOffer?: SpecialOffer;
 };
 
 const STD_GALLERY = [
@@ -303,6 +321,20 @@ export const properties: Property[] = [
       { config: "3 BHK", area: "1,850 sqft", from: "Starts ₹2.85 Cr" },
       { config: "4 BHK", area: "3,200 sqft", from: "Starts ₹4.2 Cr" },
     ],
+    // Seed special-offer entry so the YouTube CTA on the banner has something
+    // to render. Other projects without specialOffer simply won't show the
+    // YouTube button — backwards compatible. Replace this URL with the real
+    // offer video once you have one, or wire up the admin Special Offer step
+    // to populate this field per-project.
+    specialOffer: {
+      enabled: true,
+      badge: "Limited time",
+      title: "Zero brokerage",
+      discount: "Save up to ₹3 L",
+      validUntil: "30 Jun 2026",
+      description: "Book this quarter and we cover the full brokerage.",
+      youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    },
   }),
   P({
     slug: "godrej-splendour", name: "Godrej Splendour Park", builder: "Godrej Properties",

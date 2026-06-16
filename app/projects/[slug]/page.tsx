@@ -84,7 +84,7 @@ const quickFacts = [
                     {ready ? "Ready to move" : "Under Construction"}
                   </span>
                   <span className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-pill bg-success/10 text-success border border-success/30 text-[11.5px] sm:text-[12px] font-semibold">
-                    <span aria-hidden="true">RERA Verified</span> 
+                    <span aria-hidden="true">RERA Verified</span>
                   </span>
                   <span className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-pill bg-success/10 text-success border border-success/30 text-[11.5px] sm:text-[12px] font-semibold">
                     Zero Brokerage
@@ -100,10 +100,15 @@ const quickFacts = [
                   {p.localityArea} <span className="mx-1">&middot;</span> By {p.builder}
                 </div>
 
-                {/* Offer banner — dismissible */}
+                {/* Offer banner — dismissible. youtubeUrl is optional; the
+                    banner only renders the play button when a valid YouTube
+                    URL is present on the project's specialOffer object.
+                    Admins can add/edit it from the admin panel (Special
+                    Offer wizard step → YouTube link). */}
                 <OfferBanner
                   text="Limited time: Zero brokerage on this project. Save up to ₹3 L"
                   storageKey={offerStorageKey}
+                  youtubeUrl={p.specialOffer?.youtubeUrl}
                 />
 
                 {/* Pricing table — desktop 4-column flat / mobile stacked rows */}

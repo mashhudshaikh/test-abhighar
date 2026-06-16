@@ -13,6 +13,11 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
   const [phone, setPhone] = useState("");
   const [sameAsWhatsApp, setSameAsWhatsApp] = useState(true);
   const [whatsapp, setWhatsapp] = useState("");
+  // Config dropdown — only shown for project leads (interior leads aren't
+  // about a specific BHK in the listing). Defaults to "" meaning the user
+  // didn't pick one yet, which is allowed since this is an optional hint
+  // for the advisor, not a hard filter.
+  const [config, setConfig] = useState("");
   const [intent, setIntent] = useState(variant === "interior" ? "design-consult" : "site-visit");
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
@@ -58,6 +63,15 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
   const messagePlaceholder = variant === "interior"
     ? "e.g. preferred style, must-have features, timeline"
     : "e.g. corner unit availability, possession, EMI options";
+
+  // Config options come directly from this property's bhkConfigs array.
+  // The advisor sees the buyer's actual interest ("3 BHK") rather than
+  // having to guess from the project's full range. Fallback to empty if
+  // a property is somehow missing configs — the dropdown then just has
+  // the "Any configuration" placeholder and nothing else.
+  const configOptions = (p.bhkConfigs ?? [])
+    .map((c) => c.config)
+    .filter((v, i, arr) => v && arr.indexOf(v) === i);  // dedupe + drop empty
 
   // Single source of truth for "is the form submittable right now". Mirrors the
   // submit() guard so the CTA button can visibly disable when fields are missing.
@@ -138,6 +152,21 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
                   autoComplete="tel-national"
                 />
               </div>
+            </Field>
+          )}
+
+          {/* Config dropdown — project leads only. Pulled from this property's
+              bhkConfigs so the buyer is picking from configs that actually exist.
+              Optional: the first item is a placeholder, and form submission
+              doesn't require a selection. */}
+          {variant === "project" && configOptions.length > 0 && (
+            <Field label="Preferred Configuration">
+              <select value={config} onChange={(e) => setConfig(e.target.value)} className="ad-input cursor-pointer">
+                <option value="">Any configuration</option>
+                {configOptions.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
             </Field>
           )}
 
