@@ -1,9 +1,13 @@
+import Link from "next/link";
 import { testimonials } from "@/lib/data";
 import Reveal from "./ui/reveal";
 
 export default function Testimonials() {
   return (
-    <section className="section bg-white rounded-[28px] lg:rounded-[48px] mx-3 lg:mx-4 relative overflow-hidden">
+    // ADDED id="testimonials" so future links (footer / header anchor)
+    // can scroll here. Was previously unnamed, which meant /#testimonials
+    // had nowhere to land.
+    <section id="testimonials" className="section bg-white rounded-[28px] lg:rounded-[48px] mx-3 lg:mx-4 relative overflow-hidden scroll-mt-[100px]">
       <div className="absolute top-[20%] right-[-160px] w-[480px] h-[480px] rounded-full blur-[80px] opacity-45 pointer-events-none animate-drift-1"
            style={{ background: "radial-gradient(circle, hsl(var(--gold) / 0.40), transparent 70%)" }} />
 
@@ -20,9 +24,18 @@ export default function Testimonials() {
               <p className="body-base text-slate mb-3">
                 200+ families have trusted us with the most important decision of their lives.
               </p>
-              <a href="#" className="font-sans font-semibold text-gold inline-flex items-center gap-1.5 hover:gap-2.5 transition-all">
-                Read all stories →
-              </a>
+              {/*
+                ACTIVATED: /stories page now exists with all testimonials.
+                Previously disabled-style because no destination existed
+                and /#testimonials would have scrolled to the top of THIS
+                section.
+              */}
+              <Link
+                href="/stories"
+                className="font-sans font-semibold text-gold inline-flex items-center gap-1.5 hover:gap-2.5 hover:text-gold-hover transition-all"
+              >
+                Read all stories &rarr;
+              </Link>
             </div>
           </Reveal>
         </div>

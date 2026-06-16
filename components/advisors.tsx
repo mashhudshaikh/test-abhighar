@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { advisors } from "@/lib/data";
 import Reveal from "./ui/reveal";
 
@@ -18,9 +19,18 @@ export default function Advisors() {
               <p className="body-base text-slate mb-3">
                 Senior advisors who&apos;ve walked these neighbourhoods, know these builders, and put your interest first.
               </p>
-              <a href="#" className="font-sans font-semibold text-gold inline-flex items-center gap-1.5 hover:gap-2.5 transition-all">
+              {/*
+                ACTIVATED: /team page now exists with the full advisor
+                roster. Previously disabled-style because no destination
+                existed and /#about would have scrolled to the top of THIS
+                section, which felt broken.
+              */}
+              <Link
+                href="/team"
+                className="font-sans font-semibold text-gold inline-flex items-center gap-1.5 hover:gap-2.5 hover:text-gold-hover transition-all"
+              >
                 See the full team &rarr;
-              </a>
+              </Link>
             </div>
           </Reveal>
         </div>

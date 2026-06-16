@@ -111,10 +111,27 @@ const quickFacts = [
                   youtubeUrl={p.specialOffer?.youtubeUrl}
                 />
 
-                {/* Pricing table — desktop 4-column flat / mobile stacked rows */}
+                {/*
+                  Pricing table — desktop 4-column flat / mobile stacked rows
+
+                  CHANGED: switched from a rigid `grid-cols-4` (four equal
+                  columns) to an explicit fr ratio:
+                    Config (0.85fr) | Carpet Area (1fr) | Built-up Area (1fr) | Price (1.35fr)
+                  Reason: the "Starts ₹1.4 Cr (Negotiable*)" cell is by far
+                  the longest content in the row, so equal widths squeezed
+                  it. Giving Price ~35% more space than Config, and matching
+                  it with `gap-3` between cells, lets the labels and values
+                  breathe at every width — including the awkward range
+                  between sm (640px) and lg-with-sidebar (~580px usable).
+
+                  `minmax(0, ...)` is what lets the cells shrink properly
+                  when content gets long — without it, the grid would
+                  refuse to shrink below its content's natural size and the
+                  whole table would overflow.
+                */}
                 <div className="card-base overflow-hidden">
                   {/* Desktop header — hidden below sm */}
-                  <div className="hidden sm:grid grid-cols-4 bg-slate/5 px-5 sm:px-7 py-2 border-b border-navy/8">
+                  <div className="hidden sm:grid grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.35fr)] gap-3 bg-slate/5 px-5 sm:px-7 py-2 border-b border-navy/8">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate">Config</span>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate">Carpet Area</span>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate">Built-up Area</span>
@@ -126,8 +143,13 @@ const quickFacts = [
 
                     return (
                       <div key={c.config} className={"px-5 sm:px-7 py-4 sm:py-4" + rowBorder}>
-                        {/* Desktop: 4-column flat row */}
-                        <div className="hidden sm:grid grid-cols-4 items-baseline gap-4">
+                        {/* Desktop: 4-column row — same fr ratio as the header
+                            so the value columns line up exactly under their
+                            labels. `whitespace-nowrap` on the price cell
+                            keeps "Starts ₹1.4 Cr (Negotiable*)" on a single
+                            line; if it would overflow at a narrow lg width,
+                            the cell shrinks gracefully thanks to minmax(0,…). */}
+                        <div className="hidden sm:grid grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.35fr)] items-baseline gap-3">
                           <span className="font-sans font-semibold text-[15px] text-navy">{c.config}</span>
                           <span className="meta text-slate tnum">{c.area}</span>
                           <span className="meta text-gold font-medium tnum">{getBuiltUp(c.area)}</span>
@@ -162,7 +184,24 @@ const quickFacts = [
               </div>
 
               <section id="overview" className="pt-12 scroll-mt-[160px]">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                {/*
+                  Quick facts grid — the cluster of small cards that appears
+                  above "About this project".
+
+                  CHANGED: breakpoints were `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5`,
+                  which meant 5 columns from 1024px upward. With the 380px
+                  sidebar present at lg, the main content column is only
+                  ~580px, leaving each card ~116px wide. That's too tight for
+                  the longer values and labels — "TOTAL UNITS", "VASTU
+                  COMPLIANCE", "RERA POSSESSION" wrapped to two lines, and
+                  the RERA NO. string broke mid-character.
+
+                  New breakpoints: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`
+                    - lg (1024-1279px): 4 columns → cards ~145px → comfortable
+                    - xl (1280px+):     5 columns → cards ~160px → still fine
+                  The mobile/sm steps are unchanged.
+                */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
                   {quickFacts.map((fact, idx) => {
                     const pillVariant = (fact as { pillVariant?: string }).pillVariant;
                     const valueLower = String(fact.value).toLowerCase();
@@ -178,7 +217,14 @@ const quickFacts = [
                         {fact.value}
                       </span>
                     ) : (
-                      <span className={"font-sans font-bold text-[14.5px] leading-tight " + (fact.isLink ? "text-success underline underline-offset-2 decoration-success/40 break-all" : "text-success break-words")}>
+                      // CHANGED: link-style values (currently just RERA NO.,
+                      // which is always a long string like "P52100114502") use
+                      // text-[12.5px] so the whole code fits without an ugly
+                      // mid-character break. Other values keep text-[14.5px].
+                      // `break-all` remains on isLink as a last-resort safety
+                      // net for extra-long RERA strings; `break-words` on the
+                      // default branch leaves normal values alone.
+                      <span className={"font-sans font-bold leading-tight " + (fact.isLink ? "text-success underline underline-offset-2 decoration-success/40 text-[12.5px] break-all" : "text-success text-[14.5px] break-words")}>
                         {fact.value}
                       </span>
                     );

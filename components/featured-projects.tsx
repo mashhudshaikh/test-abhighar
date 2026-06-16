@@ -36,7 +36,15 @@ export default function FeaturedProjects() {
               <p className="body-base text-slate mb-3">
                 Curated by senior advisors who&apos;ve walked every floor plan and verified every detail.
               </p>
-              <Link href="/localities/hinjwadi" className="font-sans font-semibold text-gold-hover inline-flex items-center gap-1.5 hover:gap-2.5 hover:text-navy transition-all">
+              {/*
+                ACTIVATED: now that /all-properties index exists with
+                status/locality filters, this link points there. Previously
+                disabled-style because no destination existed.
+              */}
+              <Link
+                href="/all-properties"
+                className="font-sans font-semibold text-gold-hover inline-flex items-center gap-1.5 hover:gap-2.5 hover:text-navy transition-all"
+              >
                 View full catalogue <span aria-hidden>&rarr;</span>
               </Link>
             </div>
@@ -88,7 +96,13 @@ export default function FeaturedProjects() {
         </div>
 
         <Reveal className="text-center mt-12 lg:mt-14">
-          <MagneticButton href="/localities/hinjwadi" className="btn-primary">
+          {/*
+            CHANGED: now that /all-properties exists (with status/locality
+            filter support), the prominent "Browse all 340 properties" CTA
+            points there. Previously this was "/localities/hinjewadi" — a
+            single locality, which under-delivered on the "all 340" promise.
+          */}
+          <MagneticButton href="/all-properties" className="btn-primary">
             Browse all 340 properties
             <span aria-hidden>&rarr;</span>
           </MagneticButton>

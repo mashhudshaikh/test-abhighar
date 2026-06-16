@@ -5,14 +5,13 @@
 // that matches admin's HOMEPAGE_SECTIONS config, which slots "Latest Blog"
 // as hs8 (after Testimonials hs7, before Final CTA hs9).
 //
-// IMPORTANT: this file stays a Server Component (no "use client" directive).
-// Earlier version used onClick to disable the "All articles" links, which
-// trips Next 14's server-component rule against passing event handlers.
-// Instead, the disabled affordances are CSS-only: pointer-events-none +
-// cursor-not-allowed + visual dimming. When you wire up /blog and /blog/[slug]
-// in v2, search this file for "v2:" — each marked spot needs an href change
-// and the `pointer-events-none opacity-60 cursor-not-allowed` classes removed.
+// ACTIVATED in this version: previously all three "All articles" affordances
+// were disabled-style placeholders (pointer-events-none, opacity-60) with
+// `// v2:` markers explaining the fallback. Now that /blog and /blog/[slug]
+// exist as real pages, the three links — desktop top-right, mobile bottom,
+// and per-card — point at them directly via next/Link.
 
+import Link from "next/link";
 import { getLatestPosts } from "@/lib/blog";
 
 export default function LatestBlog() {
@@ -39,28 +38,28 @@ export default function LatestBlog() {
               Buying tips, market notes, and locality observations — written by the senior advisors who actually walk these neighbourhoods.
             </p>
           </div>
-          {/* v2: change href to "/blog" and drop the pointer-events / opacity
-              / cursor utilities once the index page is built. */}
-          <a
-            href="#"
-            aria-disabled="true"
-            tabIndex={-1}
-            className="hidden sm:inline-flex items-center gap-1.5 text-[#6B4F23] font-bold text-sm whitespace-nowrap pointer-events-none opacity-60 cursor-not-allowed"
+          {/* ACTIVATED: was the disabled-style placeholder for the previous
+              v2 marker. Now points at the real /blog index. Using next/Link
+              for client-side navigation. */}
+          <Link
+            href="/blog"
+            className="hidden sm:inline-flex items-center gap-1.5 text-[#6B4F23] font-bold text-sm whitespace-nowrap hover:text-navy transition-colors"
           >
             All articles <span aria-hidden>&rarr;</span>
-          </a>
+          </Link>
         </div>
 
         {/* Card grid — 1 col mobile → 2 col sm → 3 col lg, same breakpoint
             pattern as Localities and FeaturedProjects on the homepage. */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.map((p) => (
-            // v2: wrap each <article> in <Link href={`/blog/${p.slug}`}> and
-            // remove `cursor-default`. The card visual already matches what
-            // a clickable link card should look like.
-            <article
+            // ACTIVATED: each card is now a Link to /blog/[slug]. The
+            // previous <article cursor-default> became a Link wrapper —
+            // same visual, now actually navigates on click.
+            <Link
               key={p.id}
-              className="group bg-white rounded-card overflow-hidden border border-navy/8 shadow-[0_2px_12px_hsl(var(--navy)/0.05)] hover:shadow-[0_8px_28px_hsl(var(--navy)/0.10)] transition-shadow cursor-default"
+              href={`/blog/${p.slug}`}
+              className="group bg-white rounded-card overflow-hidden border border-navy/8 shadow-[0_2px_12px_hsl(var(--navy)/0.05)] hover:shadow-[0_8px_28px_hsl(var(--navy)/0.10)] transition-shadow block"
             >
               <div className="aspect-[16/10] bg-slate-100 overflow-hidden relative">
                 {/* Plain <img> rather than next/image so the component is
@@ -102,23 +101,21 @@ export default function LatestBlog() {
                   )}
                 </div>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
 
         {/* Mobile "All articles" — desktop variant lives in the header
             above; below sm: that's hidden, so this gives the same
             affordance under the cards. */}
-        {/* v2: change href to "/blog" and drop the disabled utilities */}
+        {/* ACTIVATED: same flip from disabled-style → real Link as above */}
         <div className="sm:hidden mt-8 text-center">
-          <a
-            href="#"
-            aria-disabled="true"
-            tabIndex={-1}
-            className="inline-flex items-center gap-1.5 text-[#6B4F23] font-bold text-sm pointer-events-none opacity-60 cursor-not-allowed"
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-1.5 text-[#6B4F23] font-bold text-sm hover:text-navy transition-colors"
           >
             See all articles <span aria-hidden>&rarr;</span>
-          </a>
+          </Link>
         </div>
 
       </div>

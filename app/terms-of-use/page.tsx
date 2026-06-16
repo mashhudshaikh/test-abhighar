@@ -30,7 +30,17 @@ export default function TermsOfUsePage() {
   return (
     <>
       <Header />
-      <main className="bg-ivory min-h-screen py-12 sm:py-16 lg:py-20">
+      {/*
+        Header-clearance note: the site header is `fixed top-0` (~66px on
+        mobile / ~82px on desktop). The earlier `py-12 sm:py-16 lg:py-20`
+        gave too little top padding on mobile (48px), so the page heading
+        slipped under the header pill. Splitting padding into top + bottom
+        and bumping the top values to pt-28 / pt-32 / pt-36 (112 / 128 /
+        144 px) gives the heading comfortable breathing room above it at
+        every breakpoint, while bottom padding stays as before so the
+        spacing into the footer is unchanged.
+      */}
+      <main className="bg-ivory min-h-screen pt-28 sm:pt-32 lg:pt-36 pb-12 sm:pb-16 lg:pb-20">
         <div className="container-x max-w-3xl">
 
           <div className="mb-10">
@@ -63,7 +73,7 @@ export default function TermsOfUsePage() {
               <P>
                 AbhiGhar is a real-estate advisory operating in Pune, Maharashtra. We are a RERA-
                 registered channel partner with MAHARERA Registration No.
-                <strong> A52100018236</strong>. We help home buyers discover, evaluate, and book
+                <strong> A031262401068</strong>. We help home buyers discover, evaluate, and book
                 residential properties, and we provide interior design services through our in-house
                 team and partner designers.
               </P>
@@ -143,7 +153,7 @@ export default function TermsOfUsePage() {
               <P>
                 This consent overrides any DND (Do-Not-Disturb) preference you may have registered,
                 but only for the limited purpose of your active enquiry. You can withdraw consent
-                at any time by writing to <strong>hello@abhighar.in</strong>; we will cease
+                at any time by writing to <strong>contact@abhighar.com</strong>; we will cease
                 contact within 7 working days.
               </P>
             </Section>
@@ -275,15 +285,12 @@ export default function TermsOfUsePage() {
               <div className="bg-white border border-navy/10 rounded-card p-5 sm:p-6 not-prose">
                 <div className="text-xs font-semibold text-[#6B4F23] uppercase tracking-wider mb-3">Grievance Officer</div>
                 <div className="space-y-1 text-[14px]">
-                  <div><span className="font-semibold text-navy">Name:</span> [REPLACE: Name of designated officer]</div>
-                  <div><span className="font-semibold text-navy">Email:</span> hello@abhighar.in</div>
+                  <div><span className="font-semibold text-navy">Name:</span> Sarika</div>
+                  <div><span className="font-semibold text-navy">Email:</span> contact@abhighar.com</div>
                   <div><span className="font-semibold text-navy">Phone:</span> +91 9890122755</div>
-                  <div><span className="font-semibold text-navy">Hours:</span> Mon–Sat, 10 AM – 8 PM IST</div>
-                  <div className="pt-2 mt-2 border-t border-navy/10">
-                    <span className="font-semibold text-navy">Registered address:</span> [REPLACE: Full registered address, Pune, Maharashtra, India]
-                  </div>
+                  <div><span className="font-semibold text-navy">Hours:</span> Mon&ndash;Sun, 10 AM &ndash; 8 PM IST</div>
                   <div>
-                    <span className="font-semibold text-navy">MAHARERA registration:</span> A52100018236
+                    <span className="font-semibold text-navy">MAHARERA registration:</span> A031262401068
                   </div>
                 </div>
               </div>

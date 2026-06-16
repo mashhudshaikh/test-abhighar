@@ -35,7 +35,17 @@ export default function PrivacyPolicyPage() {
   return (
     <>
       <Header />
-      <main className="bg-ivory min-h-screen py-12 sm:py-16 lg:py-20">
+      {/*
+        Header-clearance note: the site header is `fixed top-0` (~66px on
+        mobile / ~82px on desktop). The earlier `py-12 sm:py-16 lg:py-20`
+        gave too little top padding on mobile (48px), so the page heading
+        slipped under the header pill. Splitting padding into top + bottom
+        and bumping the top values to pt-28 / pt-32 / pt-36 (112 / 128 /
+        144 px) gives the heading comfortable breathing room above it at
+        every breakpoint, while bottom padding stays as before so the
+        spacing into the footer is unchanged.
+      */}
+      <main className="bg-ivory min-h-screen pt-28 sm:pt-32 lg:pt-36 pb-12 sm:pb-16 lg:pb-20">
         <div className="container-x max-w-3xl">
 
           {/* Page heading */}
@@ -60,10 +70,10 @@ export default function PrivacyPolicyPage() {
                 AbhiGhar is a real-estate advisory operating in Pune, Maharashtra. We help home buyers
                 discover, evaluate, and book residential properties; we also provide interior design
                 services through our in-house team and partner designers. We operate the website
-                <strong> abhighar.in</strong> and our brand operations are headquartered in Pune.
+                <strong> abhighar.com</strong> and our brand operations are headquartered in Pune.
               </P>
               <P>
-                For privacy questions, write to us at <strong>hello@abhighar.in</strong> or
+                For privacy questions, write to us at <strong>contact@abhighar.com</strong> or
                 +91 9890122755. The registered address and the name of our designated grievance
                 officer are listed at the end of this document.
               </P>
@@ -181,7 +191,7 @@ export default function PrivacyPolicyPage() {
                 "Raise a grievance with our grievance officer (contact details below); if unresolved within 30 days, escalate to the Data Protection Board of India",
               ]} />
               <P>
-                To exercise any of these rights, email <strong>hello@abhighar.in</strong> with the
+                To exercise any of these rights, email <strong>contact@abhighar.com</strong> with the
                 subject line "DPDP request". We will respond within 30 days.
               </P>
             </Section>
@@ -222,12 +232,9 @@ export default function PrivacyPolicyPage() {
                 <div className="text-xs font-semibold text-[#6B4F23] uppercase tracking-wider mb-3">Grievance Officer</div>
                 <div className="space-y-1 text-[14px]">
                   <div><span className="font-semibold text-navy">Name:</span> [REPLACE: Name of designated officer]</div>
-                  <div><span className="font-semibold text-navy">Email:</span> hello@abhighar.in</div>
+                  <div><span className="font-semibold text-navy">Email:</span> contact@abhighar.com</div>
                   <div><span className="font-semibold text-navy">Phone:</span> +91 9890122755</div>
-                  <div><span className="font-semibold text-navy">Hours:</span> Mon–Sat, 10 AM – 8 PM IST</div>
-                  <div className="pt-2 mt-2 border-t border-navy/10">
-                    <span className="font-semibold text-navy">Registered address:</span> [REPLACE: Full registered address, Pune, Maharashtra, India]
-                  </div>
+                  <div><span className="font-semibold text-navy">Hours:</span> Mon–Sun, 10 AM – 8 PM IST</div>
                 </div>
               </div>
             </Section>

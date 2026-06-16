@@ -19,9 +19,19 @@ export default function Localities() {
               <p className="body-base text-slate mb-3">
                 Each locality has its own pace, character, and price band. We help you find the one that fits how you actually live.
               </p>
-              <a href="#" className="font-sans font-semibold text-gold hover:gap-2.5 inline-flex items-center gap-1.5 transition-all">
-                View all 28 localities →
-              </a>
+              {/*
+                ACTIVATED: now that /localities index page exists, this
+                link points there. Previously this was a disabled-style
+                placeholder (pointer-events-none, aria-disabled) because
+                no destination existed yet. Using next/Link for client-side
+                navigation.
+              */}
+              <Link
+                href="/localities"
+                className="font-sans font-semibold text-gold inline-flex items-center gap-1.5 hover:gap-2.5 hover:text-gold-hover transition-all"
+              >
+                View all 28 localities &rarr;
+              </Link>
             </div>
           </Reveal>
         </div>

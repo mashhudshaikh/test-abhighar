@@ -7,9 +7,14 @@ import MagneticButton from "./ui/magnetic-button";
 import MobileMenu from "./mobile-menu";
 import { cn } from "@/lib/utils";
 
+// CHANGED: "Projects" now points to /all-properties — the dedicated
+// catalogue index page with status and locality filter support. Previously
+// pointed to /localities/hinjewadi as a stand-in (and before that, the
+// typo'd /localities/hinjwadi which 404'd). Top-level nav should land on
+// a real "all" listing, not a single locality.
 const NAV_LINKS: [string, string][] = [
-  ["Projects",        "/localities/hinjwadi"],
-  ["Locations",       "/#localities"],
+  ["Projects",        "/all-properties"],
+  ["Locations",       "/localities"],
   ["Interior Design", "/interiors"],
   ["Contact",         "/#contact"],
 ];

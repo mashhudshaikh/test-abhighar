@@ -294,14 +294,30 @@ export default function Hero() {
                 </div>
               </div>
 
+              {/*
+                Most-searched footnote row.
+                CHANGED: "Browse all 340+" now points to /all-properties —
+                the real catalogue with filter support. Previously pointed
+                to /localities/hinjewadi which only showed one locality.
+
+                "Ready in Hinjewadi" continues to point at /localities/hinjewadi
+                because the intent is "Hinjewadi properties that are ready"
+                — once /all-properties supports a `?status=ready&locality=`
+                combination cleanly, this could become /all-properties?status=ready&locality=Hinjewadi
+                instead.
+
+                handleSearch() further up still produces /localities/{slug}
+                from the dropdown — that's correct, the user explicitly
+                picked a locality.
+              */}
               <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-3 px-4 pt-3.5 pb-2 text-[12.5px] sm:text-[13px] font-medium text-navy/80">
                 <span className="leading-relaxed">
                   Most searched:&nbsp;
                   <Link href="/localities/baner" className="text-navy font-bold underline underline-offset-2 decoration-gold/60 hover:decoration-gold-hover transition-colors">3BHK in Baner</Link>
                   <span className="mx-2 text-slate/50">&middot;</span>
-                  <Link href="/localities/hinjwadi" className="text-navy font-bold underline underline-offset-2 decoration-gold/60 hover:decoration-gold-hover transition-colors">Ready in Hinjewadi</Link>
+                  <Link href="/localities/hinjewadi" className="text-navy font-bold underline underline-offset-2 decoration-gold/60 hover:decoration-gold-hover transition-colors">Ready in Hinjewadi</Link>
                 </span>
-                <Link href="/localities/hinjwadi" className="text-[#6B4F23] font-bold hover:text-navy transition-colors whitespace-nowrap">Browse all 340+ &rarr;</Link>
+                <Link href="/all-properties" className="text-[#6B4F23] font-bold hover:text-navy transition-colors whitespace-nowrap">Browse all 340+ &rarr;</Link>
               </div>
             </div>
           </motion.div>

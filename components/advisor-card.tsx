@@ -58,8 +58,14 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
     }
   }
 
+  // CHANGED: Subheading ("Avg advisor response: 18 min") removed entirely.
+  // The number was a placeholder that would look dishonest at scale, and
+  // removing it saves ~24px of vertical space — a small but meaningful
+  // contribution to making the whole card fit on a single screen without
+  // internal scrolling on typical laptop viewports. The corresponding
+  // `subheading` variable and `<p className="ad-subheading">` element are
+  // both gone, and `.ad-subheading` CSS has been removed below.
   const heading = variant === "interior" ? "Get a free design quote" : "Get the best price";
-  const subheading = variant === "interior" ? "Avg designer response: 18 min" : "Avg advisor response: 18 min";
   const primaryCTA = variant === "interior" ? "Book Free Consultation" : "Schedule a Site Visit";
 
   // CHANGED: Project variant's intent question is now "Buying Purpose" with
@@ -103,11 +109,13 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
 
   return (
     <aside className="advisor-card bg-navy text-white rounded-card flex flex-col">
-      {/* Identity strip — never scrolls; the user can always see who they're talking to. */}
+      {/* Identity strip — never scrolls; the user can always see who they're talking to.
+          Added min-w-0 + truncate on the name so a very long advisor name doesn't
+          push the rating off-card. */}
       <div className="ad-identity flex items-center gap-3 border-b border-white/10 shrink-0">
         <div className="w-10 h-10 rounded-full bg-gold text-white grid place-items-center font-sans font-bold text-[13px] shrink-0">{advisor.initials}</div>
-        <div>
-          <div className="font-sans font-semibold text-[14px] leading-tight">{advisor.name}</div>
+        <div className="min-w-0">
+          <div className="font-sans font-semibold text-[14px] leading-tight truncate">{advisor.name}</div>
           <div className="meta text-white/65 inline-flex items-center gap-1 leading-tight mt-0.5">
             {advisor.role}
             <span className="mx-1 text-white/35">&middot;</span>
@@ -117,8 +125,9 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
         </div>
       </div>
 
+      {/* Heading — the previous subheading paragraph (Avg advisor response)
+          has been removed. The next element is now the form body directly. */}
       <h3 className="ad-heading font-sans font-bold text-white tracking-tight leading-tight shrink-0">{heading}</h3>
-      <p className="ad-subheading meta text-white/65 shrink-0">{subheading}</p>
 
       {/* Body — flex-1 so on ultra-short viewports it can take remaining space and scroll
           internally as a last resort. On most viewports the content fits naturally and
@@ -142,34 +151,40 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
           </Field>
 
           <Field label="Phone Number">
+            {/* CHANGED: Inner input's py-2.5 → py-1.5. This is the visible
+                "decrease WhatsApp number box height" the brief called out
+                — applies to phone too for consistency. Saves ~8px per
+                input box. Text-size also nudged from 14 → 13.5px to match
+                the smaller .ad-input default below. */}
             <div className="ad-input flex items-center gap-2 py-0">
-              <span className="text-white/55 select-none text-[14px] tnum">+91</span>
+              <span className="text-white/55 select-none text-[13.5px] tnum">+91</span>
               <input
                 type="tel" required inputMode="numeric" maxLength={10}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 placeholder="98XXX XXXXX"
-                className="bg-transparent flex-1 outline-none py-2.5 tnum text-[14px]"
+                className="bg-transparent flex-1 outline-none py-1.5 tnum text-[13.5px]"
                 autoComplete="tel-national"
               />
             </div>
           </Field>
 
-          <label className="flex items-center gap-2 cursor-pointer -mt-1">
+          <label className="flex items-center gap-2 cursor-pointer -mt-0.5">
             <input type="checkbox" checked={sameAsWhatsApp} onChange={(e) => setSameAsWhatsApp(e.target.checked)} className="accent-gold w-4 h-4" />
             <span className="meta text-white/80">My WhatsApp number is the same as above</span>
           </label>
 
           {!sameAsWhatsApp && (
             <Field label="WhatsApp Number">
+              {/* Mirrors the phone field's py-1.5 / text-[13.5px] change. */}
               <div className="ad-input flex items-center gap-2 py-0">
-                <span className="text-white/55 select-none text-[14px] tnum">+91</span>
+                <span className="text-white/55 select-none text-[13.5px] tnum">+91</span>
                 <input
                   type="tel" required inputMode="numeric" maxLength={10}
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, "").slice(0, 10))}
                   placeholder="98XXX XXXXX"
-                  className="bg-transparent flex-1 outline-none py-2.5 tnum text-[14px]"
+                  className="bg-transparent flex-1 outline-none py-1.5 tnum text-[13.5px]"
                   autoComplete="tel-national"
                 />
               </div>
@@ -185,7 +200,7 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
               value via array splice. */}
           {variant === "project" && configOptions.length > 0 && (
             <Field label="Preferred Configuration">
-              <div className="ad-chips flex flex-wrap gap-2">
+              <div className="ad-chips flex flex-wrap gap-1.5">
                 {configOptions.map((opt) => {
                   const active = config.includes(opt);
                   return (
@@ -254,25 +269,36 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
         /* ─── Card root ───
            On small screens (< 1024px) the card is in normal page flow — let
            the page handle scrolling. Above that breakpoint the sidebar is
-           usually sticky and the card must respect viewport height. */
+           usually sticky and the card must respect viewport height.
+
+           CHANGED: Default padding dropped from 1.25rem to 1rem so the card
+           has a tighter footprint everywhere, contributing to the "fits in
+           every view" goal. */
         .advisor-card {
-          padding: 1.25rem;
+          padding: 1rem;
         }
 
-        /* ─── Default (tall) viewports — comfortable spacing ─── */
-        .ad-identity { padding-bottom: 0.75rem; margin-bottom: 1rem; }
-        .ad-heading { font-size: 19px; margin-bottom: 0.25rem; }
-        .ad-subheading { margin-bottom: 1rem; }
-        .ad-form { gap: 0.625rem; }
-        .ad-submit { height: 2.75rem; margin-top: 0.5rem; }
+        /* ─── Default (tall) viewports — comfortable spacing ───
+           CHANGED throughout this block: every measurement is ~15-25% tighter
+           than the previous defaults so the card occupies less vertical room
+           in the typical case. The .ad-subheading rule has been deleted
+           entirely (no element to style anymore). */
+        .ad-identity { padding-bottom: 0.625rem; margin-bottom: 0.875rem; }
+        .ad-heading { font-size: 17px; margin-bottom: 0.875rem; }
+        .ad-form { gap: 0.5rem; }
+        .ad-submit { height: 2.5rem; margin-top: 0.375rem; font-size: 14px; }
 
+        /* Input box — the main visible "WhatsApp number box" the brief
+           called out. Previous: 9px 12px / 14px (~34-36px tall).
+           Now: 7px 11px / 13.5px (~28-30px tall). Saves ~6-8px per input
+           × 5 inputs = ~30-40px of total card height. */
         .ad-input {
           background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 10px;
-          padding: 9px 12px;
+          border-radius: 9px;
+          padding: 7px 11px;
           font-family: var(--font-inter), system-ui, sans-serif;
-          font-size: 14px;
+          font-size: 13.5px;
           color: white;
           outline: none;
           transition: border-color 0.25s, background 0.25s;
@@ -284,23 +310,24 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
           background: rgba(255, 255, 255, 0.08);
         }
         select.ad-input option { color: hsl(var(--navy)); background: white; }
-        textarea.ad-input { min-height: 56px; }
+        textarea.ad-input { min-height: 44px; }
 
         /* ─── Chip toggle group (preferred-configuration multi-select) ───
            Each chip is its own button. Inactive chips look like outlined
            pills, active ones fill with gold. Matches the rounded-pill
            aesthetic already used elsewhere on the site so the form feels
-           native rather than bolted-on. */
+           native rather than bolted-on. CHANGED: padding tightened from
+           7px 14px → 6px 12px, font 13 → 12.5 to match the smaller form. */
         .ad-chip {
           display: inline-flex;
           align-items: center;
-          padding: 7px 14px;
+          padding: 6px 12px;
           border-radius: 9999px;
           background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.18);
           color: rgba(255, 255, 255, 0.85);
           font-family: var(--font-inter), system-ui, sans-serif;
-          font-size: 13px;
+          font-size: 12.5px;
           font-weight: 600;
           line-height: 1;
           cursor: pointer;
@@ -323,7 +350,7 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
           border-color: hsl(var(--gold-hover));
         }
         .ad-chips-hint {
-          margin-top: 6px;
+          margin-top: 4px;
           font-family: var(--font-inter), system-ui, sans-serif;
           font-size: 11px;
           color: rgba(255, 255, 255, 0.45);
@@ -332,7 +359,7 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
         /* ─── Desktop: sticky card respects viewport height ───
            At ≥1024px the card is typically sticky in a sidebar — cap its height
            and let the body scroll internally only if its content overflows. The
-           cap leaves room for the site header (4rem) plus breathing space (2rem). */
+           cap leaves room for the site header (~5rem) plus breathing space. */
         @media (min-width: 1024px) {
           .advisor-card {
             max-height: calc(100vh - 6rem);
@@ -354,21 +381,19 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
         }
 
         /* ─── Compact viewports (≤ 900px tall) — typical laptop ───
-           Tighter padding & gaps to fit everything without scrolling. The
-           savings: ~10px on identity strip, ~6px on heading/subheading,
-           ~8px on form gaps, ~12px on input padding × 5 inputs ≈ 80-100px total. */
+           Each block tightens by another ~10-15% on top of the (already
+           tighter) defaults. The goal is that on a 768-900px tall laptop
+           the entire form including the submit button is visible without
+           any internal scrolling. */
         @media (max-height: 900px) {
-          .advisor-card { padding: 1rem; }
-          .ad-identity { padding-bottom: 0.5rem; margin-bottom: 0.75rem; }
-          .ad-heading { font-size: 17px; margin-bottom: 0.125rem; }
-          .ad-subheading { margin-bottom: 0.75rem; }
-          .ad-form { gap: 0.5rem; }
-          .ad-submit { height: 2.5rem; margin-top: 0.375rem; }
-          .ad-input { padding: 7px 11px; font-size: 13.5px; }
-          textarea.ad-input { min-height: 48px; }
-          /* Match the input-padding shrink so chips stay proportional to
-             the rest of the form on laptop viewports. */
-          .ad-chip { padding: 6px 12px; font-size: 12.5px; }
+          .advisor-card { padding: 0.875rem; }
+          .ad-identity { padding-bottom: 0.5rem; margin-bottom: 0.625rem; }
+          .ad-heading { font-size: 15.5px; margin-bottom: 0.625rem; }
+          .ad-form { gap: 0.375rem; }
+          .ad-submit { height: 2.375rem; margin-top: 0.25rem; }
+          .ad-input { padding: 6px 10px; font-size: 13px; }
+          textarea.ad-input { min-height: 38px; }
+          .ad-chip { padding: 5px 11px; font-size: 12px; }
         }
 
         /* ─── Ultra-compact viewports (≤ 720px tall) — small laptops, zoomed,
@@ -376,13 +401,13 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
            Internal scroll on .ad-body becomes the safety net if content
            still exceeds the available space. */
         @media (max-height: 720px) {
-          .advisor-card { padding: 0.875rem; }
+          .advisor-card { padding: 0.75rem; }
           .ad-identity { padding-bottom: 0.375rem; margin-bottom: 0.5rem; }
-          .ad-heading { font-size: 16px; }
-          .ad-subheading { margin-bottom: 0.5rem; }
-          .ad-form { gap: 0.375rem; }
-          .ad-submit { height: 2.375rem; }
-          textarea.ad-input { min-height: 40px; }
+          .ad-heading { font-size: 14.5px; margin-bottom: 0.5rem; }
+          .ad-form { gap: 0.3125rem; }
+          .ad-submit { height: 2.25rem; }
+          .ad-input { padding: 5px 9px; }
+          textarea.ad-input { min-height: 32px; }
         }
       `}</style>
     </aside>
@@ -390,8 +415,10 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  // CHANGED: gap-1.5 → gap-1. Saves 2px per field × 5 fields = 10px of
+  // total card height. Imperceptible per-field but adds up.
   return (
-    <label className="flex flex-col gap-1.5">
+    <label className="flex flex-col gap-1">
       <span className="eyebrow text-gold">{label}</span>
       {children}
     </label>
