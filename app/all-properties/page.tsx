@@ -19,6 +19,16 @@
 //
 // useSearchParams requires a Suspense boundary in Next 14, so the page
 // default-exports a Suspense wrapper around the actual content component.
+//
+// CHANGED in this revision:
+//   - ♡ Save heart icon and its useState favourites store removed
+//     (no persistence layer, no signed-in user — same reasoning as
+//     PropertyCard and FeaturedProjects).
+//   - Each card is now a clickable surface: a full-card <Link> overlay
+//     at z-1 routes to the project detail page. The title became an
+//     <h3> (group-hover preserves the gold colour shift). The arrow
+//     CTA at bottom-right uses `relative z-[2]` so its own rotate
+//     animation still runs.
 // ─────────────────────────────────────────────────────────────────────
 "use client";
 
@@ -77,15 +87,6 @@ function AllPropertiesContent() {
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatus);
   const [localityFilter, setLocalityFilter] = useState(initialLocality);
-  const [favs, setFavs] = useState<Set<string>>(new Set());
-
-  const toggleFav = (slug: string) => {
-    setFavs((prev) => {
-      const next = new Set(prev);
-      next.has(slug) ? next.delete(slug) : next.add(slug);
-      return next;
-    });
-  };
 
   const filtered = useMemo(() => {
     return properties.filter((p) => {
@@ -225,19 +226,27 @@ function AllPropertiesContent() {
                         wired to the Property type's actual field names:
                         thumbnail (not image), localityArea (not location),
                         bhkRange / areaMin / possessionLabel (not config /
-                        area / possession), priceDisplay (not price). */}
-                    <article className="card-base flex flex-col overflow-hidden transition-all duration-500 hover:-translate-y-2.5 hover:shadow-hover group h-full">
+                        area / possession), priceDisplay (not price).
+
+                        `relative` + the overlay Link below = full-card
+                        click target. h-full keeps cards equal-height in
+                        a flex row even when some cards have longer text. */}
+                    <article className="card-base relative flex flex-col overflow-hidden transition-all duration-500 hover:-translate-y-2.5 hover:shadow-hover group h-full">
+                      {/* Full-card click overlay — see comment in
+                          property-card.tsx / featured-projects.tsx for
+                          the full reasoning on the z-index stacking. */}
+                      <Link
+                        href={"/projects/" + p.slug}
+                        aria-label={`View details for ${p.name}`}
+                        className="absolute inset-0 z-[1] rounded-card focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold"
+                      />
                       <div className="relative h-[260px] overflow-hidden p-3.5">
                         <span className={"absolute top-6 left-6 z-10 px-3.5 py-1.5 rounded-pill text-[11px] font-bold tracking-wider " + badgeClass}>
                           {badge.text}
                         </span>
-                        <button
-                          onClick={() => toggleFav(p.slug)}
-                          aria-label={favs.has(p.slug) ? "Unsave" : "Save"}
-                          className="absolute top-6 right-6 z-10 w-10 h-10 rounded-full bg-white/95 backdrop-blur-sm grid place-items-center text-gold-hover transition-all duration-300 hover:bg-gold hover:text-white hover:scale-110"
-                        >
-                          {favs.has(p.slug) ? "\u2665" : "\u2661"}
-                        </button>
+                        {/* REMOVED: ♡ Save button at top-6 right-6 — no
+                            backend to persist favourites, so clicking
+                            promised something the app couldn't deliver. */}
                         <div className="relative w-full h-full overflow-hidden rounded-[22px]">
                           <Image
                             src={p.thumbnail}
@@ -252,12 +261,11 @@ function AllPropertiesContent() {
                         <div className="eyebrow text-slate mb-2 flex items-center gap-2">
                           <span aria-hidden>&#9679;</span> {p.localityArea}
                         </div>
-                        <Link
-                          href={"/projects/" + p.slug}
-                          className="h3-card text-navy mb-1 hover:text-gold-hover transition-colors"
-                        >
+                        {/* Title was a Link; now an h3 with group-hover —
+                            same reasoning as the other revised cards. */}
+                        <h3 className="h3-card text-navy mb-1 group-hover:text-gold-hover transition-colors">
                           {p.name}
-                        </Link>
+                        </h3>
                         <div className="meta text-slate/70 mb-3.5">By {p.builder}</div>
                         <div className="flex gap-2 flex-wrap mb-5 pb-5 border-b border-dashed border-navy/10">
                           {[p.bhkRange, p.areaMin, p.possessionLabel].map((s) => (
@@ -268,10 +276,14 @@ function AllPropertiesContent() {
                           <div className="price text-navy">
                             {p.priceDisplay}
                           </div>
+                          {/* Arrow CTA gets `relative z-[2]` so it sits
+                              above the overlay Link — preserves its
+                              rotate-on-hover animation independently of
+                              the card's group-hover lift. */}
                           <Link
                             href={"/projects/" + p.slug}
                             aria-label={"View " + p.name}
-                            className="w-10 h-10 rounded-full bg-ivory text-navy grid place-items-center transition-all duration-300 hover:bg-gold hover:text-white hover:-rotate-45 hover:shadow-cta"
+                            className="relative z-[2] w-10 h-10 rounded-full bg-ivory text-navy grid place-items-center transition-all duration-300 hover:bg-gold hover:text-white hover:-rotate-45 hover:shadow-cta"
                           >
                             <span aria-hidden>&rarr;</span>
                           </Link>

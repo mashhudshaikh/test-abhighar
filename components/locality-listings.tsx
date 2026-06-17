@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Property } from "@/lib/data";
 import PropertyCard from "./property-card";
@@ -32,6 +34,21 @@ type Sort = "newest" | "price-low" | "price-high";
 const PRICE_MIN_BOUND = 0;
 const PRICE_MAX_BOUND = 1000;
 const PRICE_STEP = 10;
+
+// Hard cap on how many properties can be compared at once. 4 is the typical
+// real-estate-portal convention (NoBroker / 99acres / MagicBricks all use 4)
+// — it's the most a side-by-side table can show without each column getting
+// so narrow that the values become unreadable on a typical laptop.
+const COMPARE_MAX = 4;
+
+// ── PAGINATION ──────────────────────────────────────────────────────
+// How many cards to render on first paint, and how many more to reveal
+// when "Load more properties" is clicked. 6 per page matches the 2-col
+// grid × 3 rows on desktop, so the visitor always sees clean rows
+// instead of orphaned cards on the last row. Increase if the catalogue
+// grows and 6 starts feeling too short for the typical locality.
+const INITIAL_PAGE_SIZE = 6;
+const PAGE_INCREMENT = 6;
 
 const PRICE_TICKS = [
   { value: 0,    label: "0",     major: true  },
@@ -88,6 +105,79 @@ export default function LocalityListings({
 
   const [openPill, setOpenPill] = useState<string | null>(null);
   const filterBarRef = useRef<HTMLDivElement>(null);
+
+  // ── COMPARE STATE ──────────────────────────────────────────────────
+  // List of property slugs the visitor has marked for comparison. Storing
+  // slugs (not full Property objects) keeps the state lean and lets us
+  // resolve the current Property data from the `properties` prop on each
+  // render — important because Property records could be updated in
+  // future without us holding stale snapshots in state.
+  //
+  // showCompare is the modal's open/close flag. We deliberately keep it
+  // separate from compareSlugs.length so the visitor can close the modal
+  // without losing their selection — common UX pattern when they want to
+  // tweak the list and reopen.
+  const [compareSlugs, setCompareSlugs] = useState<string[]>([]);
+  const [showCompare, setShowCompare] = useState(false);
+
+  // ── Pagination ─────────────────────────────────────────────────
+  // How many of the filtered cards are visible right now. Starts at
+  // INITIAL_PAGE_SIZE; "Load more" bumps by PAGE_INCREMENT. We reset
+  // back to the initial size whenever a filter (or sort) changes
+  // because that's effectively a new browse session — the visitor's
+  // mental model is "showing the top 6 results for this query", not
+  // "expand whatever I had open before". Without the reset, a user
+  // who had loaded 24 cards and then narrowed by type would still see
+  // 24 cards on a new query, which feels off and skips the natural
+  // re-orientation moment.
+  const [visibleCount, setVisibleCount] = useState(INITIAL_PAGE_SIZE);
+
+  // Resolve slugs to live Property records. If a slug disappears from
+  // `properties` (e.g. a project gets unpublished mid-session), it just
+  // drops out of the compare bar silently rather than throwing.
+  const compareItems = useMemo(
+    () => compareSlugs
+      .map((s) => properties.find((p) => p.slug === s))
+      .filter((p): p is Property => Boolean(p)),
+    [compareSlugs, properties]
+  );
+
+  const toggleCompare = useCallback((slug: string) => {
+    setCompareSlugs((prev) => {
+      if (prev.includes(slug)) return prev.filter((s) => s !== slug);
+      // Cap at COMPARE_MAX. We could show a toast here, but the Compare
+      // button on already-full state simply doesn't add — the bottom bar
+      // already shows "n / 4" so the visitor sees the cap was hit.
+      if (prev.length >= COMPARE_MAX) return prev;
+      return [...prev, slug];
+    });
+  }, []);
+
+  const clearCompare = useCallback(() => {
+    setCompareSlugs([]);
+    setShowCompare(false);
+  }, []);
+
+  // ESC closes the compare modal — same convention used elsewhere on this
+  // page for the pill bottom-sheets.
+  useEffect(() => {
+    if (!showCompare) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setShowCompare(false);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [showCompare]);
+
+  // Lock body scroll while the modal is open — prevents the page below
+  // from scrolling under the overlay on mobile, and keeps the modal
+  // visually anchored on desktop.
+  useEffect(() => {
+    if (!showCompare) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [showCompare]);
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -167,6 +257,22 @@ export default function LocalityListings({
     if (sort === "price-high") list.sort((a, b) => b.priceMax - a.priceMax);
     return list;
   }, [properties, currentTypeConfig.label, typeSubChoice, priceMin, priceMax, possession, sort]);
+
+  // Reset the paginated view back to the first page whenever the
+  // filter/sort inputs change. Mirrors the dependency list of the
+  // `filtered` useMemo above so any future filter added in one place
+  // is reflected in the other.
+  useEffect(() => {
+    setVisibleCount(INITIAL_PAGE_SIZE);
+  }, [propertyType, typeSubChoice, priceMin, priceMax, possession, sort]);
+
+  // Slice of `filtered` we actually render. Kept as its own derived
+  // value so the count display ("X properties in Y") still shows the
+  // full filtered total — the slice only affects what's painted in
+  // the grid, not the headline number above it.
+  const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+  const hasMore = visibleCount < filtered.length;
+  const nextBatchSize = Math.min(PAGE_INCREMENT, filtered.length - visibleCount);
 
   const budgetSummary =
     priceMin === PRICE_MIN_BOUND && priceMax >= PRICE_MAX_BOUND
@@ -278,16 +384,80 @@ export default function LocalityListings({
       {filtered.length === 0 ? (
         <EmptyState />
       ) : (
+        // ── PROPERTY GRID ─────────────────────────────────────────────
+        // No wrapper overlay anymore — the Compare chip lives inside
+        // PropertyCard itself (bottom-left of the hero image). We pass
+        // `selected` and `onCompareToggle` to wire its existing
+        // checkbox visual to our local compare state. `compareDisabled`
+        // is set when the cap of 4 is hit, so unselected cards become
+        // visually dimmed and non-clickable until something is removed.
+        //
+        // We render `visible` (the paginated slice) here rather than
+        // the full `filtered` array — the rest become visible when the
+        // visitor clicks "Load more" below the grid.
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          {filtered.map((p) => <PropertyCard key={p.slug} property={p} />)}
+          {visible.map((p) => {
+            const selected = compareSlugs.includes(p.slug);
+            const atCap = !selected && compareSlugs.length >= COMPARE_MAX;
+            return (
+              <PropertyCard
+                key={p.slug}
+                property={p}
+                selected={selected}
+                compareDisabled={atCap}
+                onCompareToggle={() => toggleCompare(p.slug)}
+              />
+            );
+          })}
         </div>
       )}
 
-      <div className="text-center mt-8 sm:mt-10">
-        <button className="px-6 sm:px-7 h-11 sm:h-12 rounded-pill bg-white border border-navy/15 text-navy font-semibold text-[13.5px] sm:text-[14px] hover:border-gold hover:text-gold-hover transition-colors">
-          Load more properties
-        </button>
-      </div>
+      {/* "Load more properties" — only shown when there are still
+          un-rendered cards in the filtered set. The label includes the
+          exact count of the next batch so the visitor knows what
+          they're getting (e.g. "Load 6 more properties", or
+          "Load 2 more properties" if only 2 remain). On click we
+          extend `visibleCount` by the page increment; once everything
+          is shown the button silently disappears. */}
+      {hasMore && (
+        <div className="text-center mt-8 sm:mt-10">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((c) => Math.min(c + PAGE_INCREMENT, filtered.length))}
+            className="px-6 sm:px-7 h-11 sm:h-12 rounded-pill bg-white border border-navy/15 text-navy font-semibold text-[13.5px] sm:text-[14px] hover:border-gold hover:text-gold-hover transition-colors"
+          >
+            Load {nextBatchSize} more {nextBatchSize === 1 ? "property" : "properties"}
+          </button>
+        </div>
+      )}
+
+      {/* ── COMPARE TRAY (sticky bottom bar) ──────────────────────────────
+          Appears only when at least one item is selected. Sits above the
+          floating WhatsApp button (z-50 vs WA's z-60 — WA still wins, so
+          we use z-[55] and the body.sheet-open class still hides WA when
+          the modal opens). Shows compact previews of selected properties
+          + a primary CTA, all dismissible. */}
+      {compareItems.length > 0 && !showCompare && (
+        <CompareTray
+          items={compareItems}
+          onRemove={(slug) => toggleCompare(slug)}
+          onCompare={() => setShowCompare(true)}
+          onClear={clearCompare}
+        />
+      )}
+
+      {/* ── COMPARE MODAL ──────────────────────────────
+          Full-screen overlay with the side-by-side comparison table.
+          Closes via the X button, ESC, or backdrop click. Selection
+          persists when closed so the visitor can tweak via the tray. */}
+      {showCompare && compareItems.length > 0 && (
+        <CompareModal
+          items={compareItems}
+          onClose={() => setShowCompare(false)}
+          onRemove={(slug) => toggleCompare(slug)}
+          onClearAll={clearCompare}
+        />
+      )}
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -300,6 +470,323 @@ export default function LocalityListings({
           transform: translateY(20px);
           transition: opacity 0.25s ease, transform 0.25s ease;
         }
+      `}</style>
+    </div>
+  );
+}
+
+// ━━━ COMPARE TRAY ━━━
+// Sticky bottom bar shown while at least one item is selected for compare
+// and the modal is closed. Lists thumbnails / names of selected items
+// with per-item remove (×), a Clear All and a primary "Compare N
+// Properties" CTA. On mobile it collapses to just the count + CTA to
+// avoid eating screen space.
+function CompareTray({
+  items,
+  onRemove,
+  onCompare,
+  onClear,
+}: {
+  items: Property[];
+  onRemove: (slug: string) => void;
+  onCompare: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <div
+      role="region"
+      aria-label={"Compare " + items.length + " selected " + (items.length === 1 ? "property" : "properties")}
+      className="fixed inset-x-0 bottom-0 z-[55] px-3 pb-3 sm:px-4 sm:pb-4 pointer-events-none"
+    >
+      <div className="pointer-events-auto max-w-[1100px] mx-auto bg-navy text-white rounded-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.30)] border border-white/8 backdrop-blur-md overflow-hidden animate-tray-up">
+        <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="hidden sm:inline-flex items-center justify-center w-7 h-7 rounded-full bg-gold/20 text-gold text-[12px] font-bold tnum">
+              {items.length}
+            </span>
+            <span className="text-[12.5px] sm:text-[13px] font-semibold tracking-tight">
+              <span className="sm:hidden">{items.length} / {COMPARE_MAX}</span>
+              <span className="hidden sm:inline">{items.length === 1 ? "property" : "properties"} to compare</span>
+            </span>
+          </div>
+
+          {/* Item chips — hidden on small screens to keep the bar compact.
+              Each chip is removable; click on the × deletes the item from
+              the selection without opening the modal. */}
+          <div className="hidden sm:flex flex-1 items-center gap-2 overflow-x-auto no-scrollbar">
+            {items.map((p) => (
+              <div
+                key={p.slug}
+                className="shrink-0 inline-flex items-center gap-1.5 pl-1 pr-1.5 py-1 rounded-full bg-white/10 border border-white/12 max-w-[180px]"
+              >
+                <span className="w-6 h-6 rounded-full bg-gold/20 grid place-items-center overflow-hidden shrink-0">
+                  {/* Thumbnail — graceful fallback to initial if image
+                      missing. Using Next/Image for consistent sizing. */}
+                  {p.thumbnail ? (
+                    <Image
+                      src={p.thumbnail}
+                      alt=""
+                      width={24}
+                      height={24}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-[10px] font-bold text-gold">{(p.name || "?")[0]}</span>
+                  )}
+                </span>
+                <span className="text-[11.5px] font-semibold truncate max-w-[120px]">{p.name}</span>
+                <button
+                  type="button"
+                  onClick={() => onRemove(p.slug)}
+                  aria-label={"Remove " + p.name}
+                  className="w-4 h-4 rounded-full text-white/70 hover:text-white hover:bg-white/15 grid place-items-center shrink-0"
+                >
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <line x1="18" y1="6"  x2="6"  y2="18" />
+                    <line x1="6"  y1="6"  x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
+            <button
+              type="button"
+              onClick={onClear}
+              className="hidden sm:inline-flex text-[12px] font-semibold text-white/65 hover:text-white px-2 py-1.5 transition-colors"
+            >
+              Clear all
+            </button>
+            <button
+              type="button"
+              onClick={onCompare}
+              disabled={items.length < 2}
+              title={items.length < 2 ? "Add at least 2 properties to compare" : undefined}
+              className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-pill bg-gold text-white text-[12.5px] sm:text-[13px] font-semibold shadow-cta hover:bg-gold-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gold"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="15" y2="12" />
+                <line x1="3" y1="18" x2="18" y2="18" />
+              </svg>
+              <span className="hidden sm:inline">Compare {items.length} {items.length === 1 ? "property" : "properties"}</span>
+              <span className="sm:hidden">Compare</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes trayUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-tray-up { animation: trayUp 0.32s cubic-bezier(0.32, 0.72, 0, 1); }
+      `}</style>
+    </div>
+  );
+}
+
+// ━━━ COMPARE MODAL ━━━
+// Side-by-side comparison table for the selected properties. Rows are the
+// attributes we want to surface; columns are the properties. Empty/unknown
+// values render as "—" so missing data is obvious. Differences are
+// highlighted across the row so the visitor can spot what varies at a
+// glance.
+function CompareModal({
+  items,
+  onClose,
+  onRemove,
+  onClearAll,
+}: {
+  items: Property[];
+  onClose: () => void;
+  onRemove: (slug: string) => void;
+  onClearAll: () => void;
+}) {
+  // Row definitions — each function pulls a string from a Property. We
+  // tolerate fields that might not exist on every Property variant by
+  // doing optional chaining and fallback to "—". Adding a new row is a
+  // one-line append here.
+  const rows: { label: string; get: (p: Property) => string }[] = [
+    { label: "Builder",         get: (p) => p.builder || "—" },
+    { label: "Locality",        get: (p) => p.localityArea || "—" },
+    { label: "Status",          get: (p) => p.status === "ready" ? "Ready to Move" : "Under Construction" },
+    { label: "Configurations",  get: (p) => p.bhkRange || (p.bhkOptions?.length ? p.bhkOptions.join(", ") + " BHK" : "—") },
+    { label: "Carpet Area",     get: (p) => p.areaRange || (p.areaMin ? p.areaMin + "+ sq.ft" : "—") },
+    { label: "Price",           get: (p) => p.priceDisplay || "—" },
+    { label: "Possession",      get: (p) => p.possessionLabel || (p.possessionYear ? String(p.possessionYear) : "—") },
+    { label: "RERA",            get: (p) => p.rera || "—" },
+    { label: "Total Units",     get: (p) => p.totalUnits ? String(p.totalUnits) : "—" },
+    { label: "Towers · Floors", get: (p) => {
+        const t = p.towers ? p.towers + " towers" : "";
+        const f = p.floors ? p.floors + " floors" : "";
+        const joined = [t, f].filter(Boolean).join(" · ");
+        return joined || "—";
+      },
+    },
+    { label: "Amenities",       get: (p) => p.amenities?.length ? p.amenities.length + " amenities" : "—" },
+    { label: "Litigation",      get: (p) => p.litigation || "—" },
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Compare properties"
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close comparison"
+        className="absolute inset-0 bg-navy/55 backdrop-blur-sm animate-fade-in cursor-default"
+      />
+
+      <div className="relative bg-white rounded-[20px] shadow-[0_30px_80px_rgba(0,0,0,0.30)] w-full max-w-[1100px] max-h-[88vh] flex flex-col overflow-hidden animate-pop-in">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-navy/8 shrink-0">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-gold-hover mb-0.5">Compare</div>
+            <h2 className="font-display font-bold text-[19px] sm:text-[22px] text-navy tracking-tight leading-tight">
+              {items.length} {items.length === 1 ? "property" : "properties"} side by side
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClearAll}
+              className="hidden sm:inline-flex text-[12.5px] font-semibold text-slate hover:text-navy px-2 py-1.5 transition-colors"
+            >
+              Clear all
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="w-9 h-9 rounded-full text-navy hover:bg-navy/5 grid place-items-center transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Table — vertically scrollable while header sticks. The horizontal
+            overflow handles 3-4 columns on tablets gracefully. */}
+        <div className="flex-1 overflow-auto">
+          <table className="w-full border-separate border-spacing-0">
+            {/* Column heads — property cards. Sticky on the top edge so
+                the visitor always knows which property each column is
+                for as they scroll the rows. */}
+            <thead className="sticky top-0 z-10 bg-white">
+              <tr>
+                <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-slate/60 align-bottom border-b border-navy/10 bg-white" style={{ minWidth: "140px" }}>
+                  Attribute
+                </th>
+                {items.map((p) => (
+                  <th key={p.slug} className="px-3 py-3 text-left border-b border-navy/10 bg-white align-bottom" style={{ minWidth: "180px" }}>
+                    <div className="relative">
+                      <div className="w-full aspect-[16/10] rounded-card overflow-hidden bg-ivory mb-2.5 relative">
+                        {p.thumbnail ? (
+                          <Image
+                            src={p.thumbnail}
+                            alt={p.name}
+                            fill
+                            sizes="180px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full grid place-items-center text-slate/40 text-xs">No image</div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => onRemove(p.slug)}
+                          aria-label={"Remove " + p.name + " from comparison"}
+                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-white/95 text-navy hover:bg-navy hover:text-white grid place-items-center transition-colors shadow-card"
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="font-sans font-bold text-[14px] text-navy leading-tight tracking-tight truncate">{p.name}</div>
+                      <div className="meta text-slate truncate mt-0.5">{p.builder || "—"}</div>
+                      {p.slug && (
+                        <Link
+                          href={"/projects/" + p.slug}
+                          className="inline-flex items-center gap-1 mt-2 text-[11.5px] font-semibold text-gold-hover hover:text-gold transition-colors"
+                        >
+                          View details
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </Link>
+                      )}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {rows.map((row, rowIdx) => {
+                // Highlight rows where values differ across columns —
+                // helps the buyer spot the deciding factor (e.g. price
+                // range differs by 50L, RERA numbers differ, etc.).
+                const values = items.map((p) => row.get(p));
+                const allSame = values.every((v) => v === values[0]);
+                return (
+                  <tr
+                    key={row.label}
+                    className={(rowIdx % 2 === 0 ? "bg-ivory/30" : "bg-white") + " hover:bg-ivory/55 transition-colors"}
+                  >
+                    <td className="px-4 py-3 align-top text-[11.5px] font-bold uppercase tracking-[0.1em] text-slate/70 border-b border-navy/5 sticky left-0 bg-inherit">
+                      {row.label}
+                    </td>
+                    {values.map((v, i) => (
+                      <td
+                        key={items[i].slug}
+                        className={
+                          "px-3 py-3 align-top text-[13.5px] leading-snug text-navy border-b border-navy/5 " +
+                          (!allSame && v !== "—" ? "font-semibold" : "font-normal")
+                        }
+                      >
+                        {v}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer — count + close. Compare bar shows when the modal is
+            dismissed via the X so the visitor can tweak selection. */}
+        <div className="px-4 sm:px-6 py-3 border-t border-navy/8 shrink-0 flex items-center justify-between gap-3 bg-ivory/40">
+          <div className="meta text-slate">
+            Add up to {COMPARE_MAX} properties to compare side by side.
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-pill bg-navy text-white text-[12.5px] font-semibold hover:bg-navy-80 transition-colors"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes popIn  { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+        .animate-fade-in { animation: fadeIn 0.22s ease-out; }
+        .animate-pop-in  { animation: popIn 0.32s cubic-bezier(0.32, 0.72, 0, 1); }
       `}</style>
     </div>
   );

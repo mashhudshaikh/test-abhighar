@@ -42,14 +42,25 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
     setSent(true);
 
     try {
-      // Storage key is namespaced per property slug — i.e. "lead:lodha-belmondo"
-      // — so a successful submission on one property does NOT unlock other
-      // properties. If a visitor goes from Lodha Belmondo to a Hinjewadi
-      // project, that page's LeadGate looks up "lead:<other-slug>", finds
-      // nothing, stays blurred, and prompts again. That's the intended
-      // behaviour: each property is treated as its own lead.
-      const slug = (p as Property & { slug?: string }).slug;
-      if (slug) sessionStorage.setItem("lead:" + slug, "1");
+      // CHANGED: Storage now namespaces by PROPERTY TYPE rather than slug.
+      // Previously a successful submission on, say, Lodha Belmondo unlocked
+      // only that one project's blur, and the visitor had to fill the form
+      // again on every other property page — even when they were browsing
+      // multiple apartments in the same locality. The new contract is:
+      //   one lead per property TYPE per session
+      //
+      // So filling the form on any Apartment unlocks every other Apartment
+      // in the same session, but the moment the visitor opens a Villa or a
+      // Duplex they're re-prompted (since their needs likely differ).
+      //
+      // We also keep writing the per-slug key as a fallback so existing
+      // LeadGate readers that haven't been updated yet don't regress — the
+      // per-slug record will continue to unlock just this property, and
+      // once the LeadGate read path is switched to the type key the wider
+      // unlock kicks in automatically.
+      const prop = p as Property & { slug?: string; type?: string };
+      if (prop.type) sessionStorage.setItem("lead:type:" + prop.type, "1");
+      if (prop.slug) sessionStorage.setItem("lead:" + prop.slug, "1");
       if (variant === "interior") sessionStorage.setItem("lead:interiors", "1");
     } catch { /* sessionStorage may be unavailable */ }
 
@@ -192,14 +203,27 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
           )}
 
           {/* Preferred configuration — multi-select chip toggles. Project
-              leads only. Replaces the previous single-select dropdown for
-              two reasons: buyers comparing configs (e.g. 2 vs 3 BHK) shouldn't
-              be forced to pick one, and the "Any configuration" option was
-              also dropped because an empty selection now communicates the
-              same intent. State is a string array; chips toggle their own
-              value via array splice. */}
+              leads only.
+              ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+              FIX (multi-select state loss):
+              This block USED to be wrapped in <Field>. <Field> renders a
+              <label> element, and the HTML spec says that clicking inside
+              an associated <label> dispatches a second synthetic click to
+              the first labelable descendant — which for us was the FIRST
+              chip button. So tapping any chip toggled two chips at once
+              (the one tapped + the first one), giving the appearance that
+              selections would randomly disappear when the user "tapped
+              anywhere else".
+
+              Replacing the <Field> wrapper with a plain <div> while
+              keeping the same visual styling (eyebrow label + spacing)
+              breaks the implicit label/control association, so each chip
+              only receives its own click and the multi-select state is
+              preserved across taps.
+              ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {variant === "project" && configOptions.length > 0 && (
-            <Field label="Preferred Configuration">
+            <div className="flex flex-col gap-1">
+              <span className="eyebrow text-gold">Preferred Configuration</span>
               <div className="ad-chips flex flex-wrap gap-1.5">
                 {configOptions.map((opt) => {
                   const active = config.includes(opt);
@@ -224,7 +248,7 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
                 })}
               </div>
               <div className="ad-chips-hint">Tap one or more — optional</div>
-            </Field>
+            </div>
           )}
 
           {/* CHANGED: Project variant shows "Buying Purpose" (Self Use /
@@ -417,6 +441,14 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   // CHANGED: gap-1.5 → gap-1. Saves 2px per field × 5 fields = 10px of
   // total card height. Imperceptible per-field but adds up.
+  //
+  // NOTE: This component IS a <label> on purpose — it links the eyebrow
+  // text to the input/select/textarea inside it so clicking the label
+  // focuses the control (good UX for keyboard/screen-reader users). DO
+  // NOT use this wrapper for groups of buttons (e.g. the chip multi-select)
+  // because the browser will dispatch synthetic clicks from the label to
+  // the first button inside it, toggling chips you didn't mean to toggle.
+  // For button groups, inline a <div> with the same visual styling instead.
   return (
     <label className="flex flex-col gap-1">
       <span className="eyebrow text-gold">{label}</span>
