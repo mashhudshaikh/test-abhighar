@@ -16,7 +16,7 @@ import FloorPlanViewer from "@/components/floor-plan-viewer";
 import BuilderCard from "@/components/builder-card";
 import LeadGate from "@/components/lead-gate";
 import OfferBanner from "@/components/offer-banner";
-import { propertyBySlug, similarProperties, builderBySlug } from "@/lib/data";
+import { propertyBySlug, similarProperties, builderBySlug, typeKeyFor, slugKeyFor } from "@/lib/data";
 
 export default function ProjectPage({ params }: { params: { slug: string } }) {
   const p = propertyBySlug(params.slug);
@@ -29,7 +29,25 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
 
-  const storageKey = "lead:" + p.slug;
+  // Lead-gating keys. Both keys derived from helpers in lib/data.ts so
+  // every <LeadGate> on the page (pricing, floor plans, location, etc.)
+  // and every advisor form (card + modal) read/write the same strings.
+  //
+  //   storageKey ("lead:<slug>") — per-property. Set when the form is
+  //     filled on THIS specific project. Identifies a return visit by
+  //     the same buyer for the same project.
+  //
+  //   typeKey ("lead:type:<type>") — per-property-TYPE. Set when the
+  //     form is filled on ANY project of the same type (currently all
+  //     records are "apartment"). This is what implements the
+  //     "fill once, browse many" UX the brief calls out: a visitor
+  //     who fills the form for one apartment unlocks every other
+  //     apartment in the same session, but is re-prompted on a Villa
+  //     because their buyer profile is meaningfully different.
+  //
+  // LeadGate ORs the two — presence of either unlocks the gate.
+  const storageKey = slugKeyFor(p);
+  const typeKey = typeKeyFor(p);
   const offerStorageKey = "offer-dismissed:" + p.slug;
 
   const getBuiltUp = (areaStr: string) => {
@@ -111,23 +129,37 @@ const quickFacts = [
                   youtubeUrl={p.specialOffer?.youtubeUrl}
                 />
 
-                {/*
-                  Pricing table — desktop 4-column flat / mobile stacked rows
+                {/* ── PRICING TABLE — price column is lead-gated ────────
+                    Layout / dimensions / fr-ratios are UNCHANGED. What
+                    changed is *which* cells get blurred:
 
-                  CHANGED: switched from a rigid `grid-cols-4` (four equal
-                  columns) to an explicit fr ratio:
-                    Config (0.85fr) | Carpet Area (1fr) | Built-up Area (1fr) | Price (1.35fr)
-                  Reason: the "Starts ₹1.4 Cr (Negotiable*)" cell is by far
-                  the longest content in the row, so equal widths squeezed
-                  it. Giving Price ~35% more space than Config, and matching
-                  it with `gap-3` between cells, lets the labels and values
-                  breathe at every width — including the awkward range
-                  between sm (640px) and lg-with-sidebar (~580px usable).
+                    Previously the whole pricing card sat inside a block
+                    <LeadGate>, which blurred config / carpet / built-up
+                    along with the price — too aggressive, since hiding
+                    the floor-plan dimensions hurts evaluation without
+                    materially helping lead capture.
 
-                  `minmax(0, ...)` is what lets the cells shrink properly
-                  when content gets long — without it, the grid would
-                  refuse to shrink below its content's natural size and the
-                  whole table would overflow.
+                    Now only the price values themselves are wrapped in
+                    an inline <LeadGate variant="inline">. Config, Carpet,
+                    and Built-up render normally. The price digits show
+                    as a small blurred glyph with a gold "🔒 Unlock" pill
+                    next to it; tapping opens the AdvisorModal.
+
+                    On very narrow mobile cells the pill collapses to
+                    just the lock icon (the "Unlock" label is `hidden
+                    sm:inline` inside the gate), so the row never breaks
+                    its layout even at ~320px viewport widths.
+
+                    "(Negotiable*)" is included INSIDE the LeadGate next
+                    to {c.from}, not appended after the pill. That way:
+                      • Locked: it's blurred along with the price, so
+                        nothing is left dangling at the cell's right
+                        edge to clip when the column is tight (the bug
+                        the previous build hit on lg-with-sidebar).
+                      • Unlocked: it renders alongside the price exactly
+                        as the original ungated table did — single-line
+                        on desktop, on its own smaller-text line below
+                        the price on mobile.
                 */}
                 <div className="card-base overflow-hidden">
                   {/* Desktop header — hidden below sm */}
@@ -143,17 +175,32 @@ const quickFacts = [
 
                     return (
                       <div key={c.config} className={"px-5 sm:px-7 py-4 sm:py-4" + rowBorder}>
-                        {/* Desktop: 4-column row — same fr ratio as the header
-                            so the value columns line up exactly under their
-                            labels. `whitespace-nowrap` on the price cell
-                            keeps "Starts ₹1.4 Cr (Negotiable*)" on a single
-                            line; if it would overflow at a narrow lg width,
-                            the cell shrinks gracefully thanks to minmax(0,…). */}
+                        {/* Desktop: 4-column row */}
                         <div className="hidden sm:grid grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.35fr)] items-baseline gap-3">
                           <span className="font-sans font-semibold text-[15px] text-navy">{c.config}</span>
                           <span className="meta text-slate tnum">{c.area}</span>
                           <span className="meta text-gold font-medium tnum">{getBuiltUp(c.area)}</span>
-                          <span className="font-sans font-medium text-[14px] text-slate tnum text-right whitespace-nowrap">{c.from} (Negotiable*)</span>
+                          {/* Price cell — only the value is gated.
+                              "(Negotiable*)" is part of the gated content
+                              (lives INSIDE the LeadGate), not appended
+                              after it: that way it's blurred together
+                              with the price while locked, and renders
+                              naturally alongside the price the moment
+                              the visitor fills the form. Putting it
+                              outside the gate would either duplicate
+                              (when c.from contains it) or get clipped at
+                              the card edge (the issue the previous build
+                              exhibited on lg-with-sidebar widths). */}
+                          <span className="font-sans font-medium text-[14px] text-slate tnum text-right whitespace-nowrap">
+                            <LeadGate
+                              variant="inline"
+                              storageKey={storageKey}
+                              typeKey={typeKey}
+                              onUnlockClick={openModal}
+                            >
+                              {c.from} (Negotiable*)
+                            </LeadGate>
+                          </span>
                         </div>
 
                         {/* Mobile: stacked label/value rows */}
@@ -167,9 +214,25 @@ const quickFacts = [
                             <dd className="text-[13.5px] font-sans font-semibold text-gold tnum text-right">{getBuiltUp(c.area)}</dd>
 
                             <dt className="text-[11px] font-bold uppercase tracking-wider text-slate self-center">Price</dt>
+                            {/* Mobile price cell — same inline gate
+                                pattern as desktop. The "(Negotiable*)"
+                                tag lives INSIDE the LeadGate so it
+                                blurs along with the price; once
+                                unlocked it renders on its own line
+                                below the price (the original two-line
+                                mobile layout). The smaller styling
+                                (text-[10.5px], normal-case, medium
+                                weight) is preserved. */}
                             <dd className="text-[13.5px] font-sans font-bold text-navy tnum text-right whitespace-nowrap">
-                              {c.from}
-                              <div className="text-[10.5px] font-medium text-slate normal-case tracking-normal">(Negotiable*)</div>
+                              <LeadGate
+                                variant="inline"
+                                storageKey={storageKey}
+                                typeKey={typeKey}
+                                onUnlockClick={openModal}
+                              >
+                                {c.from}
+                                <div className="text-[10.5px] font-medium text-slate normal-case tracking-normal">(Negotiable*)</div>
+                              </LeadGate>
                             </dd>
                           </dl>
                         </div>
@@ -184,23 +247,6 @@ const quickFacts = [
               </div>
 
               <section id="overview" className="pt-12 scroll-mt-[160px]">
-                {/*
-                  Quick facts grid — the cluster of small cards that appears
-                  above "About this project".
-
-                  CHANGED: breakpoints were `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5`,
-                  which meant 5 columns from 1024px upward. With the 380px
-                  sidebar present at lg, the main content column is only
-                  ~580px, leaving each card ~116px wide. That's too tight for
-                  the longer values and labels — "TOTAL UNITS", "VASTU
-                  COMPLIANCE", "RERA POSSESSION" wrapped to two lines, and
-                  the RERA NO. string broke mid-character.
-
-                  New breakpoints: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`
-                    - lg (1024-1279px): 4 columns → cards ~145px → comfortable
-                    - xl (1280px+):     5 columns → cards ~160px → still fine
-                  The mobile/sm steps are unchanged.
-                */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
                   {quickFacts.map((fact, idx) => {
                     const pillVariant = (fact as { pillVariant?: string }).pillVariant;
@@ -217,13 +263,6 @@ const quickFacts = [
                         {fact.value}
                       </span>
                     ) : (
-                      // CHANGED: link-style values (currently just RERA NO.,
-                      // which is always a long string like "P52100114502") use
-                      // text-[12.5px] so the whole code fits without an ugly
-                      // mid-character break. Other values keep text-[14.5px].
-                      // `break-all` remains on isLink as a last-resort safety
-                      // net for extra-long RERA strings; `break-words` on the
-                      // default branch leaves normal values alone.
                       <span className={"font-sans font-bold leading-tight " + (fact.isLink ? "text-success underline underline-offset-2 decoration-success/40 text-[12.5px] break-all" : "text-success text-[14.5px] break-words")}>
                         {fact.value}
                       </span>
@@ -251,7 +290,9 @@ const quickFacts = [
               <section id="plans" className="pt-16 scroll-mt-[160px]">
                 <div className="sec-eyebrow mb-3">Floor Plans</div>
                 <h2 className="h2-section text-navy mb-6">Configurations.</h2>
-                <LeadGate storageKey={storageKey} prompt="Floor plans available after a quick intro" onUnlockClick={openModal}>
+                {/* typeKey added so floor plans unlock when ANY apartment's
+                    form was filled this session, not just this slug's. */}
+                <LeadGate storageKey={storageKey} typeKey={typeKey} prompt="Floor plans available after a quick intro" onUnlockClick={openModal}>
                   <FloorPlanViewer configs={p.bhkConfigs} />
                 </LeadGate>
               </section>
@@ -277,7 +318,7 @@ const quickFacts = [
               <section id="location" className="pt-16 scroll-mt-[160px]">
                 <div className="sec-eyebrow mb-3">Location &amp; Connectivity</div>
                 <h2 className="h2-section text-navy mb-6">{p.localityArea}</h2>
-                <LeadGate storageKey={storageKey} prompt="Exact address & map after a quick intro" onUnlockClick={openModal}>
+                <LeadGate storageKey={storageKey} typeKey={typeKey} prompt="Exact address & map after a quick intro" onUnlockClick={openModal}>
                   <div className="rounded-card overflow-hidden border border-navy/10 mb-4 aspect-[16/7] bg-ivory grid place-items-center text-slate">
                     <span className="font-sans font-medium">Map embed for {p.localityArea}</span>
                   </div>

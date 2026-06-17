@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { Property } from "@/lib/data";
+import { Property, markLeadCaptured } from "@/lib/data";
 
 interface Props {
   property: Property;
@@ -41,32 +41,17 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
     if (!sameAsWhatsApp && whatsapp.length !== 10) return;
     setSent(true);
 
-    try {
-      // CHANGED: Storage now namespaces by PROPERTY TYPE rather than slug.
-      // Previously a successful submission on, say, Lodha Belmondo unlocked
-      // only that one project's blur, and the visitor had to fill the form
-      // again on every other property page — even when they were browsing
-      // multiple apartments in the same locality. The new contract is:
-      //   one lead per property TYPE per session
-      //
-      // So filling the form on any Apartment unlocks every other Apartment
-      // in the same session, but the moment the visitor opens a Villa or a
-      // Duplex they're re-prompted (since their needs likely differ).
-      //
-      // We also keep writing the per-slug key as a fallback so existing
-      // LeadGate readers that haven't been updated yet don't regress — the
-      // per-slug record will continue to unlock just this property, and
-      // once the LeadGate read path is switched to the type key the wider
-      // unlock kicks in automatically.
-      const prop = p as Property & { slug?: string; type?: string };
-      if (prop.type) sessionStorage.setItem("lead:type:" + prop.type, "1");
-      if (prop.slug) sessionStorage.setItem("lead:" + prop.slug, "1");
-      if (variant === "interior") sessionStorage.setItem("lead:interiors", "1");
-    } catch { /* sessionStorage may be unavailable */ }
-
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new Event("lead-unlock"));
-    }
+    // CHANGED: Storage writes are now delegated to markLeadCaptured from
+    // lib/data.ts. That helper writes both the per-property key
+    // (lead:<slug>) AND the per-type key (lead:type:<type>) atomically,
+    // then dispatches the "lead-unlock" event so every <LeadGate> on
+    // the page re-checks and unblurs.
+    //
+    // Doing it through the central helper means advisor-card and
+    // advisor-modal can never write different keys by accident — they
+    // both call the same function. When you update advisor-modal.tsx,
+    // it should make the identical one-line call.
+    markLeadCaptured(p, variant);
   }
 
   // CHANGED: Subheading ("Avg advisor response: 18 min") removed entirely.

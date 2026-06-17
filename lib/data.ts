@@ -32,7 +32,7 @@ export type Advisor = {
 export const advisors: readonly Advisor[] = [
   {
     slot: "project",
-    name: "Sarika ",
+    name: "Sarika K.",
     role: "Senior Advisor",
     exp: "8 yrs",
     area: "Pune Markets",
@@ -125,23 +125,6 @@ export const interiors = [
 
 export type Status = "ready" | "under-construction";
 
-// Special offer attached to a project. All fields optional so an existing
-// project without a specialOffer object continues to work. The banner on the
-// project page reads from here; admins manage it from the admin panel's
-// Special Offer wizard step.
-export type SpecialOffer = {
-  enabled?: boolean;
-  badge?: string;
-  title?: string;
-  discount?: string;
-  validUntil?: string;
-  description?: string;
-  // Optional YouTube video link. When present and valid, the OfferBanner on
-  // the project page shows a red YouTube play button. When absent or invalid,
-  // no button renders.
-  youtubeUrl?: string;
-};
-
 export type Property = {
   slug: string;
   name: string;
@@ -172,7 +155,14 @@ export type Property = {
   floors: string;
   litigation: string;
   reraPossession: string;
-  specialOffer?: SpecialOffer;
+  // Optional admin-panel-driven add-on. Currently used by the customer
+  // site for the OfferBanner's YouTube play button on the project page;
+  // the field is optional so existing records (and seed data without it)
+  // don't break. Extend with more sub-fields as the admin panel grows
+  // — e.g. discount amount, end date, terms text.
+  specialOffer?: {
+    youtubeUrl?: string;
+  };
 };
 
 const STD_GALLERY = [
@@ -321,20 +311,6 @@ export const properties: Property[] = [
       { config: "3 BHK", area: "1,850 sqft", from: "Starts ₹2.85 Cr" },
       { config: "4 BHK", area: "3,200 sqft", from: "Starts ₹4.2 Cr" },
     ],
-    // Seed special-offer entry so the YouTube CTA on the banner has something
-    // to render. Other projects without specialOffer simply won't show the
-    // YouTube button — backwards compatible. Replace this URL with the real
-    // offer video once you have one, or wire up the admin Special Offer step
-    // to populate this field per-project.
-    specialOffer: {
-      enabled: true,
-      badge: "Limited time",
-      title: "Zero brokerage",
-      discount: "Save up to ₹3 L",
-      validUntil: "30 Jun 2026",
-      description: "Book this quarter and we cover the full brokerage.",
-      youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    },
   }),
   P({
     slug: "godrej-splendour", name: "Godrej Splendour Park", builder: "Godrej Properties",
@@ -745,4 +721,66 @@ export function similarProperties(slug: string, limit = 4) {
   return properties
     .filter((p) => p.slug !== slug && p.localitySlug === me.localitySlug)
     .slice(0, limit);
+}
+
+// ───────────────────────── Lead-gating helpers ─────────────────────────
+//
+// The customer site treats lead capture as PER PROPERTY TYPE, not per
+// individual project. A visitor who fills the advisor form on any one
+// Apartment unlocks every other Apartment in the same session; the
+// moment they open a Villa or a Duplex they're re-prompted because the
+// buyer-profile is meaningfully different.
+//
+// Property doesn't currently have a `type` field on any record — all 21
+// existing projects are apartments. `getPropertyType` returns
+// "apartment" for everyone today. When the catalogue grows to include
+// villas/duplexes/plots, two changes:
+//
+//   1. Add `type?: PropertyType` to the Property type above.
+//   2. Update `getPropertyType` to read it:
+//        return (p as Property & { type?: PropertyType }).type ?? "apartment";
+//
+// Until then, the type-based unlock behaves as "fill once per session".
+
+export type PropertyType = "apartment" | "villa" | "duplex" | "plot" | "studio" | "commercial";
+
+export function getPropertyType(p: Property): PropertyType {
+  return "apartment";
+}
+
+// Session-storage key conventions. Centralised here so writers
+// (advisor-card / advisor-modal) and readers (lead-gate) can't drift
+// out of sync — change the prefix in one place if needed.
+export function typeKeyFor(p: Property): string {
+  return "lead:type:" + getPropertyType(p);
+}
+export function slugKeyFor(p: Property): string {
+  return "lead:" + p.slug;
+}
+
+// One-call write helper: marks the visitor as captured for both the
+// specific property AND its type bucket, then fires the cross-component
+// "lead-unlock" event so every <LeadGate> on the page re-checks
+// session storage and unblurs. Safe in non-browser environments.
+export function markLeadCaptured(p: Property, variant: "project" | "interior" = "project"): void {
+  try {
+    sessionStorage.setItem(typeKeyFor(p), "1");
+    if (p.slug) sessionStorage.setItem(slugKeyFor(p), "1");
+    if (variant === "interior") sessionStorage.setItem("lead:interiors", "1");
+  } catch { /* sessionStorage may be unavailable */ }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("lead-unlock"));
+  }
+}
+
+// Mirror of markLeadCaptured for the read side. Returns true if the
+// visitor has been captured either for this exact property OR for any
+// property of this type. Used by LeadGate to decide whether to render
+// the children or the blur+CTA overlay.
+export function isLeadCaptured(p: Property): boolean {
+  try {
+    if (sessionStorage.getItem(typeKeyFor(p)) === "1") return true;
+    if (sessionStorage.getItem(slugKeyFor(p)) === "1") return true;
+  } catch { /* ignore */ }
+  return false;
 }
