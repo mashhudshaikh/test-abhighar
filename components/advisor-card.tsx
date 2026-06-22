@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { Property, markLeadCaptured } from "@/lib/data";
+import { submitLeadWithRetry } from "@/lib/lead-intake-client";
 
 interface Props {
   property: Property;
@@ -33,7 +34,7 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
   const [sent, setSent] = useState(false);
   const { advisor } = p;
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     if (!name.trim() || phone.length !== 10) return;
     // When WhatsApp differs from the phone number, it's mandatory and must
@@ -41,17 +42,29 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
     if (!sameAsWhatsApp && whatsapp.length !== 10) return;
     setSent(true);
 
-    // CHANGED: Storage writes are now delegated to markLeadCaptured from
-    // lib/data.ts. That helper writes both the per-property key
-    // (lead:<slug>) AND the per-type key (lead:type:<type>) atomically,
-    // then dispatches the "lead-unlock" event so every <LeadGate> on
-    // the page re-checks and unblurs.
-    //
+    // Local unlock: writes the per-property key (lead:<slug>) AND the
+    // per-type key (lead:type:<type>) atomically, then dispatches the
+    // "lead-unlock" event so every <LeadGate> on the page un-blurs.
     // Doing it through the central helper means advisor-card and
-    // advisor-modal can never write different keys by accident — they
-    // both call the same function. When you update advisor-modal.tsx,
-    // it should make the identical one-line call.
+    // advisor-modal can never write different keys by accident.
     markLeadCaptured(p, variant);
+
+    // Phase 2: POST to the API via Server Action. Fire-and-forget — the
+    // UI already unlocked via markLeadCaptured above; if the API is
+    // unreachable, submitLeadWithRetry queues the payload in localStorage
+    // and retries on the next page load (handled by <LeadIntakeRetry/>
+    // mounted in app/layout.tsx). The visitor never sees a network error.
+    void submitLeadWithRetry({
+      name: name.trim(),
+      mobile: phone,
+      whatsapp: sameAsWhatsApp ? undefined : whatsapp,
+      project: p.name,
+      config,
+      buyingPurpose: intent === "selfuse" ? "Self_use"
+                   : intent === "investment" ? "Investment"
+                   : undefined,
+      remark: message.trim() || undefined,
+    });
   }
 
   // CHANGED: Subheading ("Avg advisor response: 18 min") removed entirely.

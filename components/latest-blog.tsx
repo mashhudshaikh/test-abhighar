@@ -14,8 +14,8 @@
 import Link from "next/link";
 import { getLatestPosts } from "@/lib/blog";
 
-export default function LatestBlog() {
-  const posts = getLatestPosts(3);
+export default async function LatestBlog() {
+  const posts = await getLatestPosts(3);
 
   // Hide the section entirely if no published posts exist yet. Keeps the
   // homepage from showing an empty shell before content lands.

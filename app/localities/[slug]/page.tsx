@@ -4,21 +4,20 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 import WhatsAppFloat from "@/components/whatsapp-float";
 import LocalityListings from "@/components/locality-listings";
-import { localityBySlug, propertiesByLocality, localities } from "@/lib/data";
+import { getLocalityBySlug, getAllLocalities } from "@/lib/localities-data";
+import { getPropertiesByLocality } from "@/lib/properties";
 
-export function generateStaticParams() {
-  return localities.map((l) => ({ slug: l.slug }));
-}
-
-export default function LocalityPage({ params }: { params: { slug: string } }) {
-  const locality = localityBySlug(params.slug);
+export default async function LocalityPage({ params }: { params: { slug: string } }) {
+  const locality = await getLocalityBySlug(params.slug);
   if (!locality) notFound();
 
-  const props = propertiesByLocality(params.slug);
+  const [props, allLocalitiesRaw] = await Promise.all([
+    getPropertiesByLocality(params.slug),
+    getAllLocalities(),
+  ]);
 
-  // Build the list of localities to pass to the switcher.
-  // Just slug + name — keeps the prop surface tiny.
-  const allLocalities = localities.map((l) => ({ slug: l.slug, name: l.name }));
+  // Match the old shape — { slug, name } only — for LocalityListings prop.
+  const allLocalities = allLocalitiesRaw.map((l) => ({ slug: l.slug, name: l.name }));
 
   return (
     <>
@@ -35,14 +34,13 @@ export default function LocalityPage({ params }: { params: { slug: string } }) {
 
           <div className="grid lg:grid-cols-[1fr_auto] items-end gap-4 mb-2">
             <div>
-              <div className="sec-eyebrow mb-3">{locality.tag}</div>
+              <div className="sec-eyebrow mb-3">{locality.area}</div>
               <h1 className="h2-section text-navy">
                 Properties in <em className="text-gold italic">{locality.name}</em>
               </h1>
             </div>
             <div className="meta text-slate">
-              Starting from <strong className="text-navy font-semibold">{locality.from}</strong> &middot;
-              {` ${locality.count} properties listed`}
+              {props.length} {props.length === 1 ? "property" : "properties"} listed
             </div>
           </div>
         </div>

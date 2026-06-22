@@ -21,8 +21,8 @@ export const metadata = {
   description: "Buying tips, market notes, and locality observations from Pune's senior real-estate advisors.",
 };
 
-export default function BlogIndexPage() {
-  const posts = getAllPublishedPosts();
+export default async function BlogIndexPage() {
+  const posts = await getAllPublishedPosts();
 
   // Group by category for the chip filter row at the top. We render a
   // simple unique-category list — interactive filtering can be added

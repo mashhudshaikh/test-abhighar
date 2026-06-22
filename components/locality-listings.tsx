@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Property } from "@/lib/data";
+import { Property, getPropertyType, type PropertyType } from "@/lib/data";
 import PropertyCard from "./property-card";
 
 // FIXED: "Studio Apartment" needs its own closing quote, then the pipe, then
@@ -26,6 +26,24 @@ const PROPERTY_TYPE_CONFIG: Record<PropertyTypeKey, { label: string; options: st
   // followed by a stray `Apartment` identifier, hence the cascade of errors.
   "Studio Apartment":  { label: "Config",     options: ["Any", "1 RK"] },
   Commercial:          { label: "Space Type", options: ["Any", "Showroom", "Shop", "Office Space", "Lease"] },
+};
+
+// Maps the visitor-facing dropdown labels ("Apartment", "Villa",
+// "Studio Apartment", "Commercial", …) onto the canonical PropertyType
+// union from lib/data.ts that getPropertyType(p) returns. Lets the
+// filter compare apples to apples instead of trying to match a display
+// label ("Studio Apartment") against a data value ("studio").
+//
+// Centralised here so the table never drifts: add a new entry to
+// PropertyTypeKey above and a new key here, TypeScript will error on
+// any missing mapping at compile time (Record<...> is exhaustive).
+const LABEL_TO_PROPERTY_TYPE: Record<PropertyTypeKey, PropertyType> = {
+  Apartment:          "apartment",
+  Villa:              "villa",
+  Duplex:             "duplex",
+  Plot:               "plot",
+  "Studio Apartment": "studio",
+  Commercial:         "commercial",
 };
 
 type Possession = "all" | "new-launch" | "under-construction" | "nearing" | "ready";
@@ -231,6 +249,22 @@ export default function LocalityListings({
   const filtered = useMemo(() => {
     let list = [...properties];
 
+    // ── Type filter (the new piece) ────────────────────────────────
+    // Match each property's classification against the dropdown
+    // selection. Records without an explicit `type` field default to
+    // "apartment" via getPropertyType, so flipping the dropdown to
+    // Villa / Studio Apartment / Commercial correctly narrows to those
+    // tagged records and shows the empty state when none exist in the
+    // current locality.
+    //
+    // This used to be missing entirely — the dropdown value was only
+    // wired to swap the sub-choice options (BHK vs Space Type vs
+    // Listing), but the property list itself ignored the type
+    // selection, which is why "Commercial" was still showing
+    // apartments.
+    const wantedType = LABEL_TO_PROPERTY_TYPE[propertyType];
+    list = list.filter((p) => getPropertyType(p) === wantedType);
+
     if (currentTypeConfig.label === "BHK" && typeSubChoice !== "Any") {
       const n = bhkFromLabel(typeSubChoice);
       if (n !== null && n <= 5) {
@@ -256,7 +290,10 @@ export default function LocalityListings({
     if (sort === "price-low")  list.sort((a, b) => a.priceMin - b.priceMin);
     if (sort === "price-high") list.sort((a, b) => b.priceMax - a.priceMax);
     return list;
-  }, [properties, currentTypeConfig.label, typeSubChoice, priceMin, priceMax, possession, sort]);
+    // propertyType added to the deps array — without it React would
+    // memo-cache the previous filter result and skip re-running when
+    // the dropdown changed, even though the predicate now reads it.
+  }, [properties, propertyType, currentTypeConfig.label, typeSubChoice, priceMin, priceMax, possession, sort]);
 
   // Reset the paginated view back to the first page whenever the
   // filter/sort inputs change. Mirrors the dependency list of the

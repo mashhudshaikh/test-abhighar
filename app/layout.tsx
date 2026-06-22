@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
+import LeadIntakeRetry from "@/components/lead-intake-retry";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -25,7 +26,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        {/* Phase 2: retries any queued lead intakes from earlier sessions
+            where the API was unreachable. Renders nothing visually. */}
+        <LeadIntakeRetry />
+        {children}
+      </body>
     </html>
   );
 }

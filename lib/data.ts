@@ -155,6 +155,15 @@ export type Property = {
   floors: string;
   litigation: string;
   reraPossession: string;
+  // Property classification — drives the lead-gate's "fill once per
+  // TYPE" behaviour. Optional: when absent, getPropertyType() below
+  // treats the property as "apartment" (the safe default). Set this
+  // only when the project is something other than a standard apartment
+  // — a villa, duplex, studio, plot, or commercial space. The string
+  // values must match PropertyType (defined near the bottom of this
+  // file). The lead-gate re-blurs and re-prompts whenever a visitor
+  // navigates between two properties whose types differ.
+  type?: PropertyType;
   // Optional admin-panel-driven add-on. Currently used by the customer
   // site for the OfferBanner's YouTube play button on the project page;
   // the field is optional so existing records (and seed data without it)
@@ -348,6 +357,7 @@ export const properties: Property[] = [
   P({
     slug: "vtp-altair-baner", name: "VTP Altair", builder: "VTP Realty",
     localitySlug: "baner", localityArea: "Baner · Pune West", status: "ready",
+    type: "villa",
     bhkRange: "3, 4 BHK", bhkOptions: [3, 4], areaMin: "1,620 sqft min",
     areaRange: "1,620 – 2,800 sqft",
     possessionLabel: "Ready to Move", possessionYear: 2024,
@@ -468,6 +478,7 @@ export const properties: Property[] = [
   P({
     slug: "pride-purple-park-titan", name: "Pride Purple Park Titan", builder: "Pride Purple",
     localitySlug: "hinjewadi", localityArea: "Hinjwadi, Pune", status: "under-construction",
+    type: "studio",
     bhkRange: "1, 2 BHK", bhkOptions: [1, 2], areaMin: "610 sqft min",
     possessionLabel: "Possession 2027", possessionYear: 2027,
     priceDisplay: "₹ 49 L – 78 L", priceMin: 49, priceMax: 78,
@@ -522,6 +533,7 @@ export const properties: Property[] = [
   P({
     slug: "kolte-patil-24k-allure", name: "Kolte Patil 24K Allure", builder: "Kolte Patil",
     localitySlug: "koregaon", localityArea: "Koregaon Park · Pune East", status: "under-construction",
+    type: "villa",
     bhkRange: "4, 5 BHK", bhkOptions: [4, 5], areaMin: "3,400 sqft min",
     possessionLabel: "Possession Mar 2026", possessionYear: 2026,
     priceDisplay: "₹ 4.95 Cr – 7.2 Cr", priceMin: 495, priceMax: 720,
@@ -569,6 +581,59 @@ export const properties: Property[] = [
       { config: "1 BHK", area: "550 sqft", from: "Starts ₹48 L" },
       { config: "2 BHK", area: "920 sqft", from: "Starts ₹85 L" },
       { config: "3 BHK", area: "1,420 sqft", from: "Starts ₹1.4 Cr" },
+    ],
+  }),
+
+  // ── Test records for the type-based lead-gate + locality filter ──
+  // Added so the dropdown's "Commercial" and "Duplex" options have
+  // matching properties to display — without these the visitor would
+  // see an empty grid when picking those types in any locality.
+  // bhkConfigs is reused as "config" for the commercial floor sizes
+  // since the shape (config / area / from price) is identical and the
+  // pricing-table renderer doesn't care that "1,200 sqft Showroom"
+  // isn't literally a BHK.
+  P({
+    slug: "balewadi-business-bay", name: "Balewadi Business Bay", builder: "Kolte Patil",
+    localitySlug: "baner", localityArea: "Baner · Pune West", status: "ready",
+    type: "commercial",
+    bhkRange: "Showroom & Office", bhkOptions: [1], areaMin: "650 sqft min",
+    areaRange: "650 – 2,400 sqft",
+    possessionLabel: "Ready to Move", possessionYear: 2024,
+    priceDisplay: "₹ 95 L – 3.6 Cr", priceMin: 95, priceMax: 360,
+    thumbnail: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100133401",
+    totalUnits: 84,
+    landParcel: "2.1 Acres", towers: "1", floors: "G+8",
+    reraPossession: "Ready",
+    nearby: NEARBY_BANER,
+    bhkConfigs: [
+      { config: "Shop",         area: "650 sqft",   from: "Starts ₹95 L" },
+      { config: "Showroom",     area: "1,200 sqft", from: "Starts ₹1.65 Cr" },
+      { config: "Office Space", area: "2,400 sqft", from: "Starts ₹3.6 Cr" },
+    ],
+    about:
+      "Balewadi Business Bay in Baner is a Grade-A commercial development from Kolte Patil — " +
+      "84 units of shops, showrooms, and office spaces fronting the Baner main road. Walking " +
+      "distance from Balewadi High Street, with double-height retail frontage and dedicated " +
+      "office tower access. Possession is immediate.",
+  }),
+  P({
+    slug: "panchshil-towers-duplex", name: "Panchshil Towers (Duplex Residences)", builder: "Panchshil",
+    localitySlug: "kharadi", localityArea: "Kharadi, Pune East", status: "under-construction",
+    type: "duplex",
+    bhkRange: "3, 4 BHK Duplex", bhkOptions: [3, 4], areaMin: "2,150 sqft min",
+    areaRange: "2,150 – 3,800 sqft",
+    possessionLabel: "Possession Dec 2027", possessionYear: 2027,
+    priceDisplay: "₹ 3.2 Cr – 5.8 Cr", priceMin: 320, priceMax: 580,
+    thumbnail: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=900&q=80",
+    rera: "P52100134022",
+    totalUnits: 48,
+    landParcel: "2.8 Acres", towers: "2", floors: "G+20",
+    reraPossession: "Dec 2027",
+    nearby: NEARBY_KHARADI,
+    bhkConfigs: [
+      { config: "3 BHK Duplex", area: "2,150 sqft", from: "Starts ₹3.2 Cr" },
+      { config: "4 BHK Duplex", area: "3,800 sqft", from: "Starts ₹5.8 Cr" },
     ],
   }),
 ];
@@ -731,21 +796,16 @@ export function similarProperties(slug: string, limit = 4) {
 // moment they open a Villa or a Duplex they're re-prompted because the
 // buyer-profile is meaningfully different.
 //
-// Property doesn't currently have a `type` field on any record — all 21
-// existing projects are apartments. `getPropertyType` returns
-// "apartment" for everyone today. When the catalogue grows to include
-// villas/duplexes/plots, two changes:
-//
-//   1. Add `type?: PropertyType` to the Property type above.
-//   2. Update `getPropertyType` to read it:
-//        return (p as Property & { type?: PropertyType }).type ?? "apartment";
-//
-// Until then, the type-based unlock behaves as "fill once per session".
+// Reads `p.type` from the record. Records without a `type` field are
+// treated as "apartment" — the safe default since the vast majority of
+// Pune projects are standard apartments. To make a property something
+// else (villa, duplex, studio, plot, commercial), add `type: "..."` to
+// the corresponding entry in `properties` above.
 
 export type PropertyType = "apartment" | "villa" | "duplex" | "plot" | "studio" | "commercial";
 
 export function getPropertyType(p: Property): PropertyType {
-  return "apartment";
+  return p.type ?? "apartment";
 }
 
 // Session-storage key conventions. Centralised here so writers
