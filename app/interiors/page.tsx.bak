@@ -14,7 +14,7 @@ import type { Metadata } from "next";
 import { getAllInteriorData } from "@/lib/interior";
 import InteriorsPageClient from "./InteriorsPageClient";
 
-export const revalidate = 5; // Re-fetch from API every 60s
+export const revalidate = 60; // Re-fetch from API every 60s
 
 export const metadata: Metadata = {
   title: "Interiors — Abhi Ghar",

@@ -65,29 +65,6 @@ export default function AdvisorCard({ property: p, variant = "project" }: Props)
                    : undefined,
       remark: message.trim() || undefined,
     });
-
-    // Phase 4.5 — interior variant ALSO calls dedicated interior intake API
-    // so leads land in /admin → Interior → Leads (not just project Leads).
-    if (variant === "interior") {
-      const _map: Record<string, "full_home" | "modular_kitchen" | "living_wardrobes"> = {
-        "design-consult": "full_home",
-        "cost-estimate": "full_home",
-        "see-portfolio": "full_home",
-        "modular": "modular_kitchen",
-      };
-      try {
-        const { submitInteriorIntake } = await import("@/app/actions/interior-intake");
-        await submitInteriorIntake({
-          name: name.trim(),
-          mobile: phone,
-          whatsapp: sameAsWhatsApp ? undefined : whatsapp,
-          serviceType: _map[intent] || "full_home",
-          requirements: message.trim() || undefined,
-        });
-      } catch (e) {
-        console.warn("[interior intake] non-fatal:", e);
-      }
-    }
   }
 
   // CHANGED: Subheading ("Avg advisor response: 18 min") removed entirely.
